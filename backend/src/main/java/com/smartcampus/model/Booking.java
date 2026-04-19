@@ -37,6 +37,9 @@ public class Booking {
 
     private String purpose;
 
+    @Field("rejection_reason")
+    private String rejectionReason;
+
     @Field("created_at")
     private LocalDateTime createdAt;
 
@@ -98,6 +101,14 @@ public class Booking {
 
     public void setPurpose(String purpose) {
         this.purpose = purpose;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 
     public LocalDateTime getCreatedAt() {
