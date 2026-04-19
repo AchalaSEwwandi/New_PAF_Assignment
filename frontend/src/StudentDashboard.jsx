@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiBell, FiLogOut, FiHome, FiBox, FiCalendar, FiFileText, FiTool, FiUser, FiSettings } from 'react-icons/fi';
+import { FiSearch, FiBell, FiLogOut, FiHome, FiBox, FiCalendar, FiFileText, FiTool, FiUser, FiSettings, FiList, FiEye } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
+import CreateTicket from './pages/tickets/CreateTicket';
+import TicketList from './pages/tickets/TicketList';
+import TicketDetails from './pages/tickets/TicketDetails';
 
 export default function StudentDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
   const jwt = localStorage.getItem('jwt');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -24,12 +28,31 @@ export default function StudentDashboard({ setCurrentPage }) {
     window.location.href = '/';
   };
 
+  // Navigate to ticket details
+  const handleViewTicket = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setActiveTab('Ticket Details');
+  };
+
+  // Navigate back to My Tickets list
+  const handleBackToList = () => {
+    setSelectedTicketId(null);
+    setActiveTab('My Tickets');
+  };
+
+  // After creating ticket, go to My Tickets
+  const handleTicketCreated = () => {
+    setActiveTab('My Tickets');
+  };
+
   const mainNavItems = [
     { name: 'Dashboard', icon: <FiHome size={18} /> },
     { name: 'Facilities', icon: <FiBox size={18} /> },
     { name: 'My Bookings', icon: <FiCalendar size={18} />, badge: 2 },
     { name: 'My Schedule', icon: <FiFileText size={18} /> },
+    // Ticket section
     { name: 'Report Issue', icon: <FiTool size={18} /> },
+    { name: 'My Tickets', icon: <FiList size={18} /> },
     { name: 'Notifications', icon: <FiBell size={18} />, badge: 3 },
   ];
 
@@ -38,11 +61,16 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['Facilities', 'My Bookings', 'My Schedule', 'Report Issue', 'Notifications', 'My Profile', 'Settings'];
+  // Tabs that are "coming soon" (no implementation yet)
+  const comingSoonTabs = ['Facilities', 'My Bookings', 'My Schedule', 'Notifications', 'My Profile', 'Settings'];
+
+  // Determine if we're inside a ticket view for sidebar highlighting
+  const ticketTabs = ['Report Issue', 'My Tickets', 'Ticket Details'];
+  const sidebarActive = ticketTabs.includes(activeTab) ? activeTab : activeTab;
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
-      {/* Sidebar - Matching #6a0dad theme */}
+      {/* Sidebar */}
       <div className="w-[280px] bg-[#3a0760] text-white flex flex-col pt-6 pb-6 shadow-xl z-10 shrink-0 border-r border-[#6a0dad]/30">
 
         {/* Logo Section */}
@@ -58,18 +86,22 @@ export default function StudentDashboard({ setCurrentPage }) {
 
         {/* Navigation Wrapper */}
         <div className="flex-1 overflow-y-auto px-4 mt-2">
-          
+
           <div className="mb-6">
             <h3 className="px-4 text-[11px] font-bold text-[#d8b4fe] uppercase tracking-wider mb-3">Main</h3>
             <ul className="space-y-1">
               {mainNavItems.map(item => (
                 <li key={item.name}>
                   <button
-                    onClick={() => setActiveTab(item.name)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeTab === item.name
+                    onClick={() => {
+                      setActiveTab(item.name);
+                      if (item.name !== 'Ticket Details') setSelectedTicketId(null);
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                      activeTab === item.name || (item.name === 'My Tickets' && activeTab === 'Ticket Details')
                         ? 'bg-[#6a0dad] text-white font-semibold'
                         : 'text-[#d8b4fe]/70 hover:text-white hover:bg-[#6a0dad]/50'
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className={`${activeTab === item.name ? 'text-white' : ''}`}>{item.icon}</span>
@@ -91,10 +123,11 @@ export default function StudentDashboard({ setCurrentPage }) {
                 <li key={item.name}>
                   <button
                     onClick={() => setActiveTab(item.name)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeTab === item.name
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                      activeTab === item.name
                         ? 'bg-[#6a0dad] text-white font-semibold'
                         : 'text-[#d8b4fe]/70 hover:text-white hover:bg-[#6a0dad]/50'
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className={`${activeTab === item.name ? 'text-white' : ''}`}>{item.icon}</span>
@@ -124,7 +157,9 @@ export default function StudentDashboard({ setCurrentPage }) {
 
         {/* Top Header */}
         <header className="h-[76px] bg-[#f9fafb] border-b border-gray-200 flex items-center justify-between px-8 shrink-0">
-          <h2 className="font-syne text-[20px] font-bold text-gray-800">{activeTab}</h2>
+          <h2 className="font-syne text-[20px] font-bold text-gray-800">
+            {activeTab === 'Ticket Details' ? '← Ticket Details' : activeTab}
+          </h2>
 
           <div className="flex items-center gap-6">
             <div className="relative">
@@ -153,6 +188,7 @@ export default function StudentDashboard({ setCurrentPage }) {
         {/* Main Scrolling Area */}
         <div className="flex-1 overflow-y-auto p-8">
 
+          {/* ========== DASHBOARD ========== */}
           {activeTab === 'Dashboard' && (
             <div className="space-y-8 max-w-[1200px] mx-auto">
               {/* Banner */}
@@ -200,12 +236,50 @@ export default function StudentDashboard({ setCurrentPage }) {
                     <p className="text-sm text-gray-400">Help keep the campus safe by reporting maintenance issues.</p>
                   </div>
 
+                  <div onClick={() => setActiveTab('My Tickets')} className="bg-white rounded-2xl p-8 border-2 border-dashed border-gray-200 hover:border-[#6a0dad] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center cursor-pointer">
+                    <div className="w-12 h-12 bg-[#6a0dad]/10 rounded-xl flex items-center justify-center mb-4">
+                      <FiList className="text-[#6a0dad]" size={24} />
+                    </div>
+                    <h4 className="font-syne font-bold text-gray-800 mb-2">My Tickets</h4>
+                    <p className="text-sm text-gray-400">Track the status of all your submitted tickets.</p>
+                  </div>
+
                 </div>
               </div>
-
             </div>
           )}
 
+          {/* ========== REPORT ISSUE (CreateTicket) ========== */}
+          {activeTab === 'Report Issue' && (
+            <div className="max-w-[1200px] mx-auto">
+              <CreateTicket
+                onSuccess={handleTicketCreated}
+                onCancel={() => setActiveTab('Dashboard')}
+              />
+            </div>
+          )}
+
+          {/* ========== MY TICKETS (TicketList) ========== */}
+          {activeTab === 'My Tickets' && (
+            <div className="max-w-[1200px] mx-auto">
+              <TicketList
+                onViewDetails={handleViewTicket}
+                onCreateNew={() => setActiveTab('Report Issue')}
+              />
+            </div>
+          )}
+
+          {/* ========== TICKET DETAILS ========== */}
+          {activeTab === 'Ticket Details' && selectedTicketId && (
+            <div className="max-w-[1200px] mx-auto">
+              <TicketDetails
+                ticketId={selectedTicketId}
+                onBack={handleBackToList}
+              />
+            </div>
+          )}
+
+          {/* ========== COMING SOON ========== */}
           {comingSoonTabs.includes(activeTab) && (
             <div className="flex flex-col items-center justify-center h-full text-center py-24">
               <div className="w-20 h-20 bg-[#6a0dad]/10 rounded-2xl flex items-center justify-center mb-6">
