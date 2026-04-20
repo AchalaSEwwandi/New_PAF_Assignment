@@ -27,8 +27,16 @@ async function handleResponse(res) {
 }
 
 export default {
-  get: (path) =>
-    fetch(`${BASE_URL}${path}`, { headers: getAuthHeaders() }).then(handleResponse),
+  get: (path, options = {}) => {
+    let url = `${BASE_URL}${path}`;
+    if (options.params && Object.keys(options.params).length > 0) {
+      const query = new URLSearchParams(
+        Object.fromEntries(Object.entries(options.params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+      ).toString();
+      if (query) url += `?${query}`;
+    }
+    return fetch(url, { headers: getAuthHeaders() }).then(handleResponse);
+  },
 
   post: (path, body) =>
     fetch(`${BASE_URL}${path}`, {
