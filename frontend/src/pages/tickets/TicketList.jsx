@@ -70,6 +70,12 @@ export default function TicketList({ onViewDetails, onCreateNew }) {
     return true;
   });
 
+  // ---- Priority sort: HIGH first, then MEDIUM, then others ----
+  const PRIORITY_ORDER = { HIGH: 0, CRITICAL: 1, MEDIUM: 2, LOW: 3 };
+  const sortedFiltered = [...filtered].sort((a, b) =>
+    (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
+  );
+
   const selectStyle = {
     padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #e5e7eb',
     fontSize: '13px', color: '#374151', background: '#fff', cursor: 'pointer', outline: 'none',
@@ -182,11 +188,12 @@ export default function TicketList({ onViewDetails, onCreateNew }) {
       )}
 
       {/* Ticket Cards */}
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && sortedFiltered.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {filtered.map((ticket) => {
+          {sortedFiltered.map((ticket) => {
             const sm = STATUS_META[ticket.status] || STATUS_META.OPEN;
             const pm = PRIORITY_META[ticket.priority] || PRIORITY_META.MEDIUM;
+            const isHighPriority = ticket.priority === 'HIGH' || ticket.priority === 'CRITICAL';
             const dateStr = ticket.createdAt
               ? new Date(ticket.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
               : '—';
@@ -196,13 +203,16 @@ export default function TicketList({ onViewDetails, onCreateNew }) {
               <div
                 key={ticket.id}
                 style={{
-                  background: '#fff', borderRadius: '14px', border: '1px solid #e5e7eb',
-                  padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                  background: isHighPriority ? '#fff8f8' : '#fff',
+                  borderRadius: '14px',
+                  border: isHighPriority ? '1.5px solid #fca5a5' : '1px solid #e5e7eb',
+                  padding: '20px 24px',
+                  boxShadow: isHighPriority ? '0 2px 8px rgba(220,38,38,0.08)' : '0 1px 4px rgba(0,0,0,0.05)',
                   display: 'flex', alignItems: 'center', gap: '20px',
                   transition: 'box-shadow 0.2s',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 18px rgba(106,13,173,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = isHighPriority ? '0 4px 18px rgba(220,38,38,0.15)' : '0 4px 18px rgba(106,13,173,0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = isHighPriority ? '0 2px 8px rgba(220,38,38,0.08)' : '0 1px 4px rgba(0,0,0,0.05)'}
               >
                 {/* Status icon circle */}
                 <div style={{
@@ -221,6 +231,15 @@ export default function TicketList({ onViewDetails, onCreateNew }) {
                     </span>
                     <Badge meta={STATUS_META} value={ticket.status} />
                     <Badge meta={PRIORITY_META} value={ticket.priority} />
+                    {isHighPriority && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
+                        color: '#b91c1c', background: '#fee2e2', border: '1px solid #fca5a5',
+                      }}>
+                        ⚠ {ticket.priority === 'CRITICAL' ? 'Critical' : 'High Priority'}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: '#6b7280' }}>
                     <span>📁 {(ticket.category || '').replace('_', ' ')}</span>
