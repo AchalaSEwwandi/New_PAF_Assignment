@@ -5,8 +5,7 @@ import api from './api';
  * @param {Object} params - {type, location, minCapacity, status}
  */
 export const getAllResources = async (params) => {
-  const response = await api.get('/api/resources', { params });
-  return response.data;
+  return await api.get('/api/resources', { params });
 };
 
 /**
@@ -14,8 +13,7 @@ export const getAllResources = async (params) => {
  * @param {string} id 
  */
 export const getResourceById = async (id) => {
-  const response = await api.get(`/api/resources/${id}`);
-  return response.data;
+  return await api.get(`/api/resources/${id}`);
 };
 
 /**
@@ -23,8 +21,7 @@ export const getResourceById = async (id) => {
  * @param {Object} data - Resource data
  */
 export const createResource = async (data) => {
-  const response = await api.post('/api/resources', data);
-  return response.data;
+  return await api.post('/api/resources', data);
 };
 
 /**
@@ -33,8 +30,7 @@ export const createResource = async (data) => {
  * @param {Object} data - Updated resource data
  */
 export const updateResource = async (id, data) => {
-  const response = await api.put(`/api/resources/${id}`, data);
-  return response.data;
+  return await api.put(`/api/resources/${id}`, data);
 };
 
 /**
@@ -42,8 +38,7 @@ export const updateResource = async (id, data) => {
  * @param {string} id 
  */
 export const deleteResource = async (id) => {
-  const response = await api.delete(`/api/resources/${id}`);
-  return response.data;
+  return await api.delete(`/api/resources/${id}`);
 };
 
 export default {
