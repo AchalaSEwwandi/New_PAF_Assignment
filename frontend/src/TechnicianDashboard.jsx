@@ -321,6 +321,18 @@ function MyTicketsPanel({ onViewDetail }) {
     return true;
   });
 
+  // ---- Priority sort: HIGH/CRITICAL first ----
+  const PRIORITY_ORDER = { HIGH: 0, CRITICAL: 1, MEDIUM: 2, LOW: 3 };
+  const sortedFiltered = [...filtered].sort((a, b) =>
+    (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
+  );
+
+  // ---- Urgent count for alert banner ----
+  const urgentCount = tickets.filter(t =>
+    (t.priority === 'HIGH' || t.priority === 'CRITICAL') &&
+    t.status !== 'CLOSED' && t.status !== 'RESOLVED'
+  ).length;
+
   const sel = { padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #e5e7eb', fontSize: '13px', color: '#374151', background: '#fff', cursor: 'pointer', outline: 'none' };
   const openCount = tickets.filter(t => t.status === 'OPEN').length;
   const inProgressCount = tickets.filter(t => t.status === 'IN_PROGRESS').length;
@@ -370,8 +382,21 @@ function MyTicketsPanel({ onViewDetail }) {
         )}
       </div>
 
+      {/* ⚠ Urgent Alert Banner */}
+      {!loading && !err && urgentCount > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: '#fef2f2', border: '1.5px solid #fca5a5',
+          borderRadius: '12px', padding: '12px 18px', marginBottom: '16px',
+          color: '#b91c1c', fontWeight: '700', fontSize: '14px',
+        }}>
+          <span style={{ fontSize: '18px' }}>⚠</span>
+          You have <span style={{ fontWeight: '800', margin: '0 4px' }}>{urgentCount}</span> urgent ticket{urgentCount > 1 ? 's' : ''} assigned requiring attention
+        </div>
+      )}
+
       <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '14px' }}>
-        Showing <strong>{filtered.length}</strong> of <strong>{tickets.length}</strong> tickets
+        Showing <strong>{sortedFiltered.length}</strong> of <strong>{tickets.length}</strong> tickets
       </p>
 
       {loading && <div style={{ textAlign: 'center', padding: '60px', color: '#6a0dad', fontWeight: '600' }}>⏳ Loading…</div>}
@@ -389,19 +414,23 @@ function MyTicketsPanel({ onViewDetail }) {
         </div>
       )}
 
-      {!loading && !err && filtered.length > 0 && (
+      {!loading && !err && sortedFiltered.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {filtered.map(t => {
+          {sortedFiltered.map(t => {
             const sm = STATUS_META[t.status] || STATUS_META.OPEN;
+            const isHighPriority = t.priority === 'HIGH' || t.priority === 'CRITICAL';
             const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
             return (
               <div key={t.id} style={{
-                background: '#fff', borderRadius: '14px', border: '1px solid #e5e7eb',
-                padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                background: isHighPriority ? '#fff8f8' : '#fff',
+                borderRadius: '14px',
+                border: isHighPriority ? '1.5px solid #fca5a5' : '1px solid #e5e7eb',
+                padding: '20px 24px',
+                boxShadow: isHighPriority ? '0 2px 8px rgba(220,38,38,0.08)' : '0 1px 4px rgba(0,0,0,0.05)',
                 display: 'flex', alignItems: 'center', gap: '18px',
               }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 18px rgba(106,13,173,0.1)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = isHighPriority ? '0 4px 18px rgba(220,38,38,0.15)' : '0 4px 18px rgba(106,13,173,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = isHighPriority ? '0 2px 8px rgba(220,38,38,0.08)' : '0 1px 4px rgba(0,0,0,0.05)'}
               >
                 <div style={{ width: '46px', height: '46px', borderRadius: '12px', flexShrink: 0, background: sm.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
                   {sm.icon}
@@ -411,6 +440,15 @@ function MyTicketsPanel({ onViewDetail }) {
                     <span style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>{t.resourceOrLocation || '—'}</span>
                     <Badge meta={STATUS_META} value={t.status} />
                     <Badge meta={PRIORITY_META} value={t.priority} />
+                    {isHighPriority && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
+                        color: '#b91c1c', background: '#fee2e2', border: '1px solid #fca5a5',
+                      }}>
+                        ⚠ {t.priority === 'CRITICAL' ? 'Critical' : 'High Priority'}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12px', color: '#6b7280' }}>
                     <span>📁 {(t.category || '').replace('_', ' ')}</span>
