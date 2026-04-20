@@ -4,6 +4,7 @@ import { BiBuildingHouse } from 'react-icons/bi';
 import TicketList from './pages/tickets/TicketList';
 import CreateTicket from './pages/tickets/CreateTicket';
 import TicketDetails from './pages/tickets/TicketDetails';
+import BookResource from './pages/bookings/BookResource';
 
 export default function StudentDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -17,6 +18,7 @@ export default function StudentDashboard({ setCurrentPage }) {
   const [capacityFilter, setCapacityFilter] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [selectedBookingResourceId, setSelectedBookingResourceId] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'Facilities') {
@@ -54,6 +56,11 @@ export default function StudentDashboard({ setCurrentPage }) {
   const handleViewTicket = (id) => {
     setSelectedTicketId(id);
     setActiveTab('Ticket Details');
+  };
+
+  const handleBookNow = (resourceId) => {
+    setSelectedBookingResourceId(resourceId);
+    setActiveTab('Book Resource');
   };
 
   const handleBackToList = () => {
@@ -326,8 +333,7 @@ export default function StudentDashboard({ setCurrentPage }) {
                           <button 
                             onClick={() => {
                               if (resource.status === 'ACTIVE') {
-                                // Original booking logic - don't change
-                                window.location.href = '/bookings/book/' + resource.id;
+                                handleBookNow(resource.id);
                               } else {
                                 alert(`This resource is currently ${resource.status?.replace('_', ' ')}. You can only book ACTIVE resources.`);
                               }
@@ -523,6 +529,23 @@ export default function StudentDashboard({ setCurrentPage }) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========== BOOK RESOURCE ========== */}
+          {activeTab === 'Book Resource' && selectedBookingResourceId && (
+            <div className="max-w-[1200px] mx-auto">
+              <BookResource
+                resourceId={selectedBookingResourceId}
+                onBack={() => {
+                  setSelectedBookingResourceId(null);
+                  setActiveTab('Facilities');
+                }}
+                onSuccess={() => {
+                  setSelectedBookingResourceId(null);
+                  setActiveTab('My Bookings');
+                }}
+              />
             </div>
           )}
 
