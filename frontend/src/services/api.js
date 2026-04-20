@@ -1,59 +1,39 @@
-// Frontend API service — base fetch wrapper
-// Backend runs on port 8082
+import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8082';
-
-function getAuthHeaders() {
-  const jwt = localStorage.getItem('jwt');
-  return {
+/**
+ * Axios instance pre-configured with base URL and JWT token injection.
+ * All API calls should use this instance.
+ */
+const api = axios.create({
+  baseURL: 'http://localhost:8082',
+  headers: {
     'Content-Type': 'application/json',
-    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
-  };
-}
+  },
+});
 
-async function handleResponse(res) {
-  const text = await res.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = { message: text };
+// Request interceptor: attach JWT token from localStorage to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: handle 401 globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
-  if (!res.ok) {
-    const msg = data?.error || data?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-  return data;
-}
+);
 
-export default {
-  get: (path) =>
-    fetch(`${BASE_URL}${path}`, { headers: getAuthHeaders() }).then(handleResponse),
-
-  post: (path, body) =>
-    fetch(`${BASE_URL}${path}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(body),
-    }).then(handleResponse),
-
-  put: (path, body) =>
-    fetch(`${BASE_URL}${path}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(body),
-    }).then(handleResponse),
-
-  patch: (path, body) =>
-    fetch(`${BASE_URL}${path}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(body),
-    }).then(handleResponse),
-
-  delete: (path) =>
-    fetch(`${BASE_URL}${path}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    }).then(handleResponse),
-};
+export default api;

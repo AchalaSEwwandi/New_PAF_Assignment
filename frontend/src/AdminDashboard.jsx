@@ -276,7 +276,7 @@ export default function AdminDashboard({ setCurrentPage }) {
                       <BiBuildingHouse className="text-gray-600" size={20} />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-gray-800 mb-1">12</div>
+                      <div className="text-2xl font-bold text-gray-800 mb-1">{resources.length}</div>
                       <p className="text-sm font-bold text-gray-800">Facilities</p>
                       <p className="text-xs text-gray-400 mt-1">Campus assets</p>
                     </div>
@@ -332,12 +332,12 @@ export default function AdminDashboard({ setCurrentPage }) {
                 <h3 className="font-syne text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Modules</h3>
                 <div className="grid grid-cols-3 gap-6">
 
-                  <div className="bg-white rounded-2xl p-8 border-2 border-dashed border-[#6a0dad]/30 hover:border-[#6a0dad] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center cursor-pointer">
+                  <div onClick={() => window.location.href = '/resources'} className="bg-white rounded-2xl p-8 border-2 border-dashed border-[#6a0dad]/30 hover:border-[#6a0dad] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center cursor-pointer">
                     <div className="w-12 h-12 bg-[#6a0dad]/10 rounded-xl flex items-center justify-center mb-4">
                       <BiBuildingHouse className="text-[#6a0dad]" size={24} />
                     </div>
                     <h4 className="font-syne font-bold text-gray-800 mb-2">Facilities & Assets</h4>
-                    <p className="text-sm text-gray-400">Manage campus buildings, rooms, and equipment. Under development by your team.</p>
+                    <p className="text-sm text-gray-400">Manage campus buildings, rooms, and equipment. Module is ready!</p>
                   </div>
 
                   <div className="bg-white rounded-2xl p-8 border-2 border-dashed border-[#6a0dad]/30 hover:border-[#6a0dad] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center cursor-pointer">
@@ -471,8 +471,18 @@ export default function AdminDashboard({ setCurrentPage }) {
                 <FiBox className="text-[#6a0dad]" size={36} />
               </div>
               <h2 className="font-syne text-2xl font-bold text-gray-800 mb-3">{activeTab}</h2>
-              <p className="text-gray-400 text-sm max-w-sm">This module is currently under development by the team. Check back soon!</p>
-              <span className="mt-6 px-4 py-2 bg-[#6a0dad]/10 text-[#6a0dad] text-sm font-semibold rounded-full">Coming Soon</span>
+              <p className="text-gray-400 text-sm max-w-sm">
+                {activeTab === 'Resources' 
+                  ? "The Resources & Facilities module is fully functional! Click below to open it."
+                  : "This module is currently under development by the team. Check back soon!"}
+              </p>
+              {activeTab === 'Resources' ? (
+                 <button onClick={() => window.location.href = '/resources'} className="mt-6 px-6 py-3 bg-[#6a0dad] hover:bg-[#580b94] text-white text-sm font-semibold rounded-xl transition-all shadow-md">
+                   Launch Resources Module
+                 </button>
+              ) : (
+                 <span className="mt-6 px-4 py-2 bg-[#6a0dad]/10 text-[#6a0dad] text-sm font-semibold rounded-full">Coming Soon</span>
+              )}
             </div>
           )}
 
