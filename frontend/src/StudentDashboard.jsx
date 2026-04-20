@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiBell, FiLogOut, FiHome, FiBox, FiCalendar, FiFileText, FiTool, FiUser, FiSettings } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
+import TicketList from './pages/tickets/TicketList';
+import CreateTicket from './pages/tickets/CreateTicket';
+import TicketDetails from './pages/tickets/TicketDetails';
 
 export default function StudentDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -13,6 +16,7 @@ export default function StudentDashboard({ setCurrentPage }) {
   const [searchFilter, setSearchFilter] = useState('');
   const [capacityFilter, setCapacityFilter] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'Facilities') {
@@ -47,11 +51,22 @@ export default function StudentDashboard({ setCurrentPage }) {
     window.location.href = '/';
   };
 
+  const handleViewTicket = (id) => {
+    setSelectedTicketId(id);
+    setActiveTab('Ticket Details');
+  };
+
+  const handleBackToList = () => {
+    setSelectedTicketId(null);
+    setActiveTab('My Tickets');
+  };
+
   const mainNavItems = [
     { name: 'Dashboard', icon: <FiHome size={18} /> },
     { name: 'Facilities', icon: <FiBox size={18} /> },
     { name: 'My Bookings', icon: <FiCalendar size={18} />, badge: 2 },
     { name: 'My Schedule', icon: <FiFileText size={18} /> },
+    { name: 'My Tickets', icon: <FiTool size={18} /> },
     { name: 'Report Issue', icon: <FiTool size={18} /> },
     { name: 'Notifications', icon: <FiBell size={18} />, badge: 3 },
   ];
@@ -61,7 +76,7 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Bookings', 'My Schedule', 'Report Issue', 'Notifications', 'My Profile', 'Settings'];
+  const comingSoonTabs = ['My Bookings', 'My Schedule', 'Notifications', 'My Profile', 'Settings'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -508,6 +523,36 @@ export default function StudentDashboard({ setCurrentPage }) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========== MY TICKETS (TicketList) ========== */}
+          {activeTab === 'My Tickets' && (
+            <div className="max-w-[1200px] mx-auto">
+              <TicketList
+                onViewDetails={handleViewTicket}
+                onCreateNew={() => setActiveTab('Report Issue')}
+              />
+            </div>
+          )}
+
+          {/* ========== REPORT ISSUE (CreateTicket) ========== */}
+          {activeTab === 'Report Issue' && (
+            <div className="max-w-[1200px] mx-auto">
+              <CreateTicket
+                onSuccess={() => setActiveTab('My Tickets')}
+                onCancel={() => setActiveTab('My Tickets')}
+              />
+            </div>
+          )}
+
+          {/* ========== TICKET DETAILS ========== */}
+          {activeTab === 'Ticket Details' && selectedTicketId && (
+            <div className="max-w-[1200px] mx-auto">
+              <TicketDetails
+                ticketId={selectedTicketId}
+                onBack={handleBackToList}
+              />
             </div>
           )}
 
