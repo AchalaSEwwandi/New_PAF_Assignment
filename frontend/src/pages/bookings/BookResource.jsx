@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE = "http://localhost:8082";
@@ -10,12 +11,15 @@ function toLocalDateTime(date, time) {
 }
 
 export default function BookResource() {
+  const { id: urlResourceId } = useParams();   // pre-selected resource from URL
+  const navigate = useNavigate();
+
   const [resources, setResources]           = useState([]);
   const [resourcesLoading, setResourcesLoading] = useState(true);
   const [resourcesError, setResourcesError] = useState("");
 
   const [form, setForm] = useState({
-    resourceId:        "",
+    resourceId:        urlResourceId || "",
     date:              "",
     startTime:         "",
     endTime:           "",
@@ -127,17 +131,29 @@ export default function BookResource() {
       <div className="w-full max-w-2xl">
 
         {/* ── Header ── */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-500/40">
-            {/* calendar icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div className="mb-8">
+          <button
+            onClick={() => navigate("/resources")}
+            className="mb-4 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
+            Back to Facilities
+          </button>
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-500/40">
+              {/* calendar icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Book a Resource</h1>
+            <p className="mt-1 text-sm text-slate-400">Reserve campus facilities for your session</p>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Book a Resource</h1>
-          <p className="mt-1 text-sm text-slate-400">Reserve campus facilities for your session</p>
         </div>
 
         {/* ── Card ── */}
