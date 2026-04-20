@@ -2,7 +2,10 @@ package com.smartcampus.controller;
 
 import com.smartcampus.dto.BookingRequest;
 import com.smartcampus.model.Booking;
+import com.smartcampus.model.User;
+import com.smartcampus.repository.UserRepository;
 import com.smartcampus.service.BookingService;
+import com.smartcampus.service.QRCodeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +32,15 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final QRCodeService  qrCodeService;
+    private final UserRepository userRepository;
 
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
+    public BookingController(BookingService bookingService,
+                             QRCodeService qrCodeService,
+                             UserRepository userRepository) {
+        this.bookingService  = bookingService;
+        this.qrCodeService   = qrCodeService;
+        this.userRepository  = userRepository;
     }
 
     // -----------------------------------------------------------------------
@@ -280,6 +289,83 @@ public class BookingController {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Failed to retrieve booking: " + e.getMessage()));
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // GET /api/bookings/{id}/qr  — fetch QR code for an approved booking
+    // -----------------------------------------------------------------------
+
+    /**
+     * Returns a Base64-encoded PNG QR code for the given booking.
+     * Accessible by the booking owner or any ADMIN.
+     */
+    @GetMapping("/{id}/qr")
+    public ResponseEntity<?> getQRCode(@PathVariable String id) {
+        try {
+            String currentEmail = getCurrentUserEmail();
+            Booking booking = bookingService.getBookingById(id);
+
+            // Ownership / role check
+            User caller = userRepository.findByEmail(currentEmail).orElse(null);
+            boolean isAdmin  = caller != null && "ADMIN".equalsIgnoreCase(
+                               caller.getRole() != null ? caller.getRole().name() : "");
+            boolean isOwner  = booking.getUser() != null &&
+                               booking.getUser().getEmail().equals(currentEmail);
+
+            if (!isAdmin && !isOwner) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied."));
+            }
+
+            if (booking.getStatus() != Booking.Status.APPROVED) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "QR code is only available for APPROVED bookings."));
+            }
+
+            String qrBase64 = qrCodeService.generateQRCodeBase64(booking);
+            return ResponseEntity.ok(Map.of("qrCode", qrBase64));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // POST /api/bookings/verify-qr  — admin endpoint to verify a QR payload
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies a raw QR payload against a booking.
+     * Body: { "bookingId": "...", "payload": "..." }
+     * Admin only.
+     */
+    @PostMapping("/verify-qr")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> verifyQR(@RequestBody Map<String, String> body) {
+        try {
+            String bookingId = body.get("bookingId");
+            String payload   = body.get("payload");
+
+            if (bookingId == null || payload == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "bookingId and payload are required."));
+            }
+
+            Booking booking = bookingService.getBookingById(bookingId);
+            boolean valid   = qrCodeService.verifyPayload(payload, booking);
+
+            return ResponseEntity.ok(Map.of(
+                    "valid",   valid,
+                    "status",  booking.getStatus(),
+                    "student", booking.getUser()  != null ? booking.getUser().getEmail()    : "unknown",
+                    "resource",booking.getResource() != null ? booking.getResource().getName() : "unknown"
+            ));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }

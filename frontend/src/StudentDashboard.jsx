@@ -64,7 +64,7 @@ export default function StudentDashboard({ setCurrentPage }) {
 
 
 
-  const comingSoonTabs = ['My Bookings', 'My Schedule', 'Report Issue', 'Notifications', 'My Profile', 'Settings'];
+  const comingSoonTabs = ['My Schedule', 'Report Issue', 'Notifications', 'My Profile', 'Settings'];
 
 
   return (
@@ -315,7 +315,7 @@ export default function StudentDashboard({ setCurrentPage }) {
                           <button 
                             onClick={() => {
                               if (resource.status === 'ACTIVE') {
-                                // Original booking logic - don't change
+                                sessionStorage.setItem('bookingReturnTo', 'student');
                                 window.location.href = '/bookings/book/' + resource.id;
                               } else {
                                 alert(`This resource is currently ${resource.status?.replace('_', ' ')}. You can only book ACTIVE resources.`);
@@ -512,6 +512,12 @@ export default function StudentDashboard({ setCurrentPage }) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'My Bookings' && (
+            <div className="max-w-[900px] mx-auto">
+              <MyBookings />
             </div>
           )}
 
