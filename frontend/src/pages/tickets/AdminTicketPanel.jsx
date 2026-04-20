@@ -476,6 +476,18 @@ export default function AdminTicketPanel() {
     return true;
   });
 
+  // ---- Priority sort: HIGH/CRITICAL first ----
+  const PRIORITY_ORDER = { HIGH: 0, CRITICAL: 1, MEDIUM: 2, LOW: 3 };
+  const sortedFiltered = [...filtered].sort((a, b) =>
+    (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
+  );
+
+  // ---- High-priority alert count (open/in-progress HIGH or CRITICAL tickets) ----
+  const highPriorityAlertCount = tickets.filter(t =>
+    (t.priority === 'HIGH' || t.priority === 'CRITICAL') &&
+    (t.status === 'OPEN' || t.status === 'IN_PROGRESS')
+  ).length;
+
   const sel = { padding:'8px 12px',borderRadius:'8px',border:'1.5px solid #e5e7eb',fontSize:'13px',color:'#374151',background:'#fff',cursor:'pointer',outline:'none' };
 
   const openModal = (type, ticket) => { setModalType(type); setModalTicket(ticket); };
@@ -535,8 +547,21 @@ export default function AdminTicketPanel() {
         )}
       </div>
 
+      {/* ⚠ High Priority Alert Banner */}
+      {!loading && !err && highPriorityAlertCount > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: '#fef2f2', border: '1.5px solid #fca5a5',
+          borderRadius: '12px', padding: '12px 18px', marginBottom: '16px',
+          color: '#b91c1c', fontWeight: '700', fontSize: '14px',
+        }}>
+          <span style={{ fontSize: '18px' }}>⚠</span>
+          You have <span style={{ fontWeight: '800', margin: '0 4px' }}>{highPriorityAlertCount}</span> high priority ticket{highPriorityAlertCount > 1 ? 's' : ''} requiring attention
+        </div>
+      )}
+
       <p style={{fontSize:'13px',color:'#6b7280',marginBottom:'14px'}}>
-        Showing <strong>{filtered.length}</strong> of <strong>{tickets.length}</strong> tickets
+        Showing <strong>{sortedFiltered.length}</strong> of <strong>{tickets.length}</strong> tickets
       </p>
 
       {/* Error */}
@@ -556,7 +581,7 @@ export default function AdminTicketPanel() {
       )}
 
       {/* Table */}
-      {!loading&&!err&&filtered.length>0&&(
+      {!loading&&!err&&sortedFiltered.length>0&&(
         <div style={{background:'#fff',borderRadius:'16px',border:'1px solid #e5e7eb',overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}}>
           <table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
@@ -567,15 +592,17 @@ export default function AdminTicketPanel() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t, idx)=>{
+              {sortedFiltered.map((t, idx)=>{
                 const shortId = '#'+(t.id||'').slice(-6).toUpperCase();
                 const student = t.createdBy?(t.createdBy.fullName||t.createdBy.email||'—'):'—';
                 const assigned= t.assignedTo?(t.assignedTo.fullName||t.assignedTo.email):'—';
                 const date    = t.createdAt?new Date(t.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+                const isHighPriority = t.priority === 'HIGH' || t.priority === 'CRITICAL';
+                const rowBg = isHighPriority ? '#fff8f8' : (idx%2===0?'#fff':'#fafafa');
                 return(
-                  <tr key={t.id} style={{borderBottom:'1px solid #f3f4f6',background:idx%2===0?'#fff':'#fafafa'}}
-                    onMouseEnter={e=>e.currentTarget.style.background='#faf5ff'}
-                    onMouseLeave={e=>e.currentTarget.style.background=idx%2===0?'#fff':'#fafafa'}
+                  <tr key={t.id} style={{borderBottom: isHighPriority ? '1px solid #fecaca' : '1px solid #f3f4f6', background: rowBg}}
+                    onMouseEnter={e=>e.currentTarget.style.background=isHighPriority?'#fef2f2':'#faf5ff'}
+                    onMouseLeave={e=>e.currentTarget.style.background=rowBg}
                   >
                     <td style={{padding:'12px 14px',fontSize:'12px',fontFamily:'monospace',color:'#6b7280'}}>{shortId}</td>
                     <td style={{padding:'12px 14px',fontSize:'13px',fontWeight:'600',color:'#111827'}}>{student}</td>
