@@ -99,7 +99,7 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException(
                         "User not found with email: " + userEmail));
 
-        return bookingRepository.findByUserId(user.getId());
+        return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
     /**
@@ -110,9 +110,9 @@ public class BookingService {
      */
     public List<Booking> getAllBookings(Booking.Status status) {
         if (status == null) {
-            return bookingRepository.findAll();
+            return bookingRepository.findAllByOrderByCreatedAtDesc();
         }
-        return bookingRepository.findByStatus(status);
+        return bookingRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
     /**

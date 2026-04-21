@@ -23,11 +23,17 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     // -------------------------------------------------------------------------
 
     /**
-     * Find all bookings created by a specific user.
+     * Find all bookings created by a specific user, sorted by creation date descending.
      *
      * @param userId the {@link com.smartcampus.model.User} document id
      * @return list of the user's bookings (may be empty)
      */
+    List<Booking> findByUserIdOrderByCreatedAtDesc(String userId);
+
+    /**
+     * @deprecated use {@link #findByUserIdOrderByCreatedAtDesc(String)} for sorted results.
+     */
+    @Deprecated
     List<Booking> findByUserId(String userId);
 
     /**
@@ -69,10 +75,23 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     );
 
     /**
-     * Find all bookings that have the given status.
+     * Find all bookings that have the given status, sorted by creation date descending.
      *
      * @param status the {@link Booking.Status} to filter by
      * @return list of matching bookings (may be empty)
      */
+    List<Booking> findByStatusOrderByCreatedAtDesc(Booking.Status status);
+
+    /**
+     * Find all bookings sorted by creation date descending.
+     *
+     * @return list of all bookings
+     */
+    List<Booking> findAllByOrderByCreatedAtDesc();
+
+    /**
+     * @deprecated use {@link #findByStatusOrderByCreatedAtDesc(Booking.Status)} for sorted results.
+     */
+    @Deprecated
     List<Booking> findByStatus(Booking.Status status);
 }
