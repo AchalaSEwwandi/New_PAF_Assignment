@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSearch, FiBell, FiLogOut, FiUsers, FiGrid, FiBox, FiCalendar, FiAlertCircle, FiTrendingUp, FiSettings, FiUser } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import AdminBookings from './pages/bookings/AdminBookings';
 import AdminTicketPanel from './pages/tickets/AdminTicketPanel';
 
 export default function AdminDashboard({ setCurrentPage }) {
@@ -459,6 +460,8 @@ export default function AdminDashboard({ setCurrentPage }) {
             </div>
           )}
 
+          {activeTab === 'Bookings' && (
+            <AdminBookings />)}
           {activeTab === 'Tickets' && (
             <div className="max-w-[1200px] mx-auto">
               <AdminTicketPanel />

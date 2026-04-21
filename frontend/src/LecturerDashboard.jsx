@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiBell, FiLogOut, FiHome, FiArchive, FiCalendar, FiUsers, FiFolder, FiBarChart2, FiFileText } from 'react-icons/fi';
+import BookResource from './pages/bookings/BookResource';
+import MyBookings from './pages/bookings/MyBookings';
 import { BiBuildingHouse } from 'react-icons/bi';
 
 export default function LecturerDashboard({ setCurrentPage }) {
@@ -13,6 +15,7 @@ export default function LecturerDashboard({ setCurrentPage }) {
   const [searchFilter, setSearchFilter] = useState('');
   const [capacityFilter, setCapacityFilter] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedBookingResourceId, setSelectedBookingResourceId] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'Resources') {
@@ -61,7 +64,7 @@ export default function LecturerDashboard({ setCurrentPage }) {
     { name: 'Reports', icon: <FiFileText size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Classes', 'Book Facility', 'My Students', 'Notifications', 'Attendance', 'Reports'];
+  const comingSoonTabs = ['My Classes', 'My Students', 'Notifications', 'Attendance', 'Reports'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -318,8 +321,9 @@ export default function LecturerDashboard({ setCurrentPage }) {
                           <button 
                             onClick={() => {
                               if (resource.status === 'ACTIVE') {
-                                // Original booking logic - don't change
-                                window.location.href = '/bookings/book/' + resource.id;
+                                // Updated to use inline booking component
+                                setSelectedBookingResourceId(resource.id);
+                                setActiveTab('Book Facility');
                               } else {
                                 alert(`This resource is currently ${resource.status?.replace('_', ' ')}. You can only book ACTIVE resources.`);
                               }
@@ -514,6 +518,27 @@ export default function LecturerDashboard({ setCurrentPage }) {
                     </div>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ========== BOOK FACILITY / BOOKINGS ========== */}
+          {activeTab === 'Book Facility' && (
+            <div className="max-w-[1200px] mx-auto">
+              {selectedBookingResourceId ? (
+                <BookResource
+                  resourceId={selectedBookingResourceId}
+                  onBack={() => {
+                    setSelectedBookingResourceId(null);
+                    setActiveTab('Resources');
+                  }}
+                  onSuccess={() => {
+                    setSelectedBookingResourceId(null);
+                    // Stay on 'Book Facility' but show the MyBookings list
+                  }}
+                />
+              ) : (
+                <MyBookings />
               )}
             </div>
           )}

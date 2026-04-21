@@ -12,15 +12,15 @@ const path = window.location.pathname;
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId="985678395952-c50169jkdosp9hetfdor0ou8ok6dagqi.apps.googleusercontent.com">
-      {path.startsWith('/resources') ? (
-        <BrowserRouter>
+      <BrowserRouter>
+        {path.startsWith('/resources') || path.startsWith('/bookings') || path.startsWith('/tickets') || path.startsWith('/admin/bookings') ? (
           <AuthProvider>
             <AppRoutes />
           </AuthProvider>
-        </BrowserRouter>
-      ) : (
-        <App />
-      )}
+        ) : (
+          <App />
+        )}
+      </BrowserRouter>
     </GoogleOAuthProvider>
   </React.StrictMode>
 );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiBell, FiLogOut, FiHome, FiBox, FiCalendar, FiFileText, FiTool, FiUser, FiSettings } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
+import MyBookings from './pages/bookings/MyBookings';
 import TicketList from './pages/tickets/TicketList';
 import CreateTicket from './pages/tickets/CreateTicket';
 import TicketDetails from './pages/tickets/TicketDetails';
@@ -83,7 +84,7 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Bookings', 'My Schedule', 'Notifications', 'My Profile', 'Settings'];
+  const comingSoonTabs = ['My Schedule', 'Notifications', 'My Profile', 'Settings'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -546,6 +547,13 @@ export default function StudentDashboard({ setCurrentPage }) {
                   setActiveTab('My Bookings');
                 }}
               />
+            </div>
+          )}
+
+          {/* ========== MY BOOKINGS ========== */}
+          {activeTab === 'My Bookings' && (
+            <div className="max-w-[1200px] mx-auto">
+              <MyBookings />
             </div>
           )}
 

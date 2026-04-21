@@ -217,7 +217,7 @@ const ResourceList = () => {
                   </div>
                 </div>
 
-                {user?.role === 'ADMIN' && (
+                {user?.role === 'ADMIN' ? (
                   <div className="flex gap-3 pt-4">
                     <button
                       onClick={() => navigate(`/resources/edit/${resource.id}`)}
@@ -236,6 +236,25 @@ const ResourceList = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                       Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={() => navigate('/bookings')}
+                      className="flex-1 bg-white border border-gray-200 hover:border-indigo-600 hover:text-indigo-600 text-gray-700 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+                    >
+                      View Availability
+                    </button>
+                    <button
+                      onClick={() => navigate(`/bookings/book/${resource.id}`)}
+                      disabled={resource.status !== 'ACTIVE'}
+                      className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2
+                        ${resource.status === 'ACTIVE'
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                    >
+                      Book Now
                     </button>
                   </div>
                 )}
