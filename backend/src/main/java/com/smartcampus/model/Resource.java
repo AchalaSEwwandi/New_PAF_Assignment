@@ -1,40 +1,71 @@
 package com.smartcampus.model;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "resources")
 public class Resource {
 
-    public enum Type {
-        ROOM,
-        LAB,
-        EQUIPMENT
+    public enum ResourceType {
+        LECTURE_HALL, LAB, MEETING_ROOM, EQUIPMENT
+    }
+
+    public enum ResourceStatus {
+        ACTIVE, OUT_OF_SERVICE, UNDER_MAINTENANCE
+    }
+
+    public static class AvailabilityWindow {
+        private String day;
+        private String startTime;
+        private String endTime;
+
+        public String getDay() { return day; }
+        public void setDay(String day) { this.day = day; }
+        public String getStartTime() { return startTime; }
+        public void setStartTime(String startTime) { this.startTime = startTime; }
+        public String getEndTime() { return endTime; }
+        public void setEndTime(String endTime) { this.endTime = endTime; }
     }
 
     @Id
     private String id;
 
+    @NotBlank(message = "Name is required")
     private String name;
 
-    private Type type;
+    @NotNull(message = "Type is required")
+    private ResourceType type;
 
+    @Min(value = 1, message = "Capacity must be at least 1")
+    private int capacity;
+
+    @NotBlank(message = "Location is required")
     private String location;
 
-    private Integer capacity;
+    @NotBlank(message = "Building is required")
+    private String building;
 
-    @Field("is_active")
-    private Boolean active = true;
+    private String floor;
 
-    @Field("created_at")
+    private ResourceStatus status;
+
+    private String description;
+
+    private List<String> amenities;
+
+    private List<AvailabilityWindow> availabilityWindows;
+
     private LocalDateTime createdAt;
 
-    public Resource() {
-        this.createdAt = LocalDateTime.now();
-    }
+    private LocalDateTime updatedAt;
+
+    // ─── Getters and Setters ───────────────────────────────────────────────────
 
     public String getId() {
         return id;
@@ -52,12 +83,20 @@ public class Resource {
         this.name = name;
     }
 
-    public Type getType() {
+    public ResourceType getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(ResourceType type) {
         this.type = type;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     public String getLocation() {
@@ -68,20 +107,52 @@ public class Resource {
         this.location = location;
     }
 
-    public Integer getCapacity() {
-        return capacity;
+    public String getBuilding() {
+        return building;
     }
 
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
+    public void setBuilding(String building) {
+        this.building = building;
     }
 
-    public Boolean getActive() {
-        return active;
+    public String getFloor() {
+        return floor;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public void setFloor(String floor) {
+        this.floor = floor;
+    }
+
+    public ResourceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ResourceStatus status) {
+        this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<String> getAmenities() {
+        return amenities;
+    }
+
+    public void setAmenities(List<String> amenities) {
+        this.amenities = amenities;
+    }
+
+    public List<AvailabilityWindow> getAvailabilityWindows() {
+        return availabilityWindows;
+    }
+
+    public void setAvailabilityWindows(List<AvailabilityWindow> availabilityWindows) {
+        this.availabilityWindows = availabilityWindows;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -90,5 +161,13 @@ public class Resource {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
