@@ -3,6 +3,7 @@ import { FiSearch, FiBell, FiLogOut, FiUsers, FiGrid, FiBox, FiCalendar, FiAlert
 import { BiBuildingHouse } from 'react-icons/bi';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import AdminBookings from './pages/bookings/AdminBookings';
+import AdminTicketPanel from './pages/tickets/AdminTicketPanel';
 
 export default function AdminDashboard({ setCurrentPage }) {
   const [users, setUsers] = useState([]);
@@ -134,7 +135,7 @@ export default function AdminDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['Resources', 'Tickets', 'Notifications', 'Profile', 'Settings'];
+  const comingSoonTabs = ['Resources', 'Bookings', 'Notifications', 'Profile', 'Settings'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -461,6 +462,10 @@ export default function AdminDashboard({ setCurrentPage }) {
 
           {activeTab === 'Bookings' && (
             <AdminBookings />
+          {activeTab === 'Tickets' && (
+            <div className="max-w-[1200px] mx-auto">
+              <AdminTicketPanel />
+            </div>
           )}
 
           {comingSoonTabs.includes(activeTab) && (
