@@ -461,7 +461,7 @@ export default function AdminDashboard({ setCurrentPage }) {
           )}
 
           {activeTab === 'Bookings' && (
-            <AdminBookings />
+            <AdminBookings />)}
           {activeTab === 'Tickets' && (
             <div className="max-w-[1200px] mx-auto">
               <AdminTicketPanel />

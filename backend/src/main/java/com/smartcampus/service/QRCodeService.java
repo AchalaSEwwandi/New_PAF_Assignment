@@ -69,14 +69,15 @@ public class QRCodeService {
     // -------------------------------------------------------------------------
 
     private String buildPayload(Booking booking) {
-        return "{"
-                + "\"bookingId\":\"" + booking.getId() + "\","
-                + "\"userId\":\""    + safeId(booking.getUser())     + "\","
-                + "\"resourceId\":\"" + safeId(booking.getResource()) + "\","
-                + "\"startTime\":\"" + booking.getStartTime()        + "\","
-                + "\"endTime\":\""   + booking.getEndTime()          + "\","
-                + "\"status\":\""    + booking.getStatus()           + "\""
-                + "}";
+        return "SMART CAMPUS - OFFICIAL PASS\n"
+             + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+             + "Booking ID: " + booking.getId() + "\n"
+             + "User: "       + (booking.getUser() != null ? (booking.getUser().getFullName() != null ? booking.getUser().getFullName() : booking.getUser().getEmail()) : "Unknown") + "\n"
+             + "Resource: "   + (booking.getResource() != null ? booking.getResource().getName() : "Unknown") + "\n"
+             + "Start: "      + booking.getStartTime() + "\n"
+             + "End: "        + booking.getEndTime() + "\n"
+             + "Status: "     + booking.getStatus() + "\n"
+             + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
     }
 
     private String safeId(Object entity) {

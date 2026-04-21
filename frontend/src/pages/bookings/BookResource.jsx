@@ -1,22 +1,20 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
 function toLocalDateTime(date, time) {
   return `${date}T${time}:00`;
 }
 
-export default function BookResource() {
-  const { id: urlResourceId } = useParams();
-  const navigate = useNavigate();
+export default function BookResource({ resourceId, onBack, onSuccess }) {
 
   const handleBack = () => {
+    if (onBack) return onBack();
     const returnTo = sessionStorage.getItem("bookingReturnTo");
     sessionStorage.removeItem("bookingReturnTo");
     if (returnTo === "student") {
       window.location.href = "/student";
     } else {
-      navigate(-1);
+      window.history.back();
     }
   };
 
@@ -25,7 +23,7 @@ export default function BookResource() {
   const [resourcesError, setResourcesError] = useState("");
 
   const [form, setForm] = useState({
-    resourceId: urlResourceId || "",
+    resourceId: resourceId || "",
     date: "",
     startTime: "",
     endTime: "",
@@ -41,7 +39,7 @@ export default function BookResource() {
   useEffect(() => {
     api
       .get("/api/resources")
-      .then((res) => setResources(res.data))
+      .then((data) => setResources(data || []))
       .catch(() => setResourcesError("Failed to load resources. Please refresh."))
       .finally(() => setResourcesLoading(false));
   }, []);
@@ -88,10 +86,12 @@ export default function BookResource() {
       setSuccessMsg("Booking submitted! It is now pending admin approval.");
       setForm({ resourceId: "", date: "", startTime: "", endTime: "", purpose: "", expectedAttendees: "" });
       setFieldErrors({});
+      if (onSuccess) {
+        setTimeout(onSuccess, 1500);
+      }
     } catch (err) {
       setErrorMsg(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
+        err.message ||
         "An unexpected error occurred. Please try again."
       );
     } finally {

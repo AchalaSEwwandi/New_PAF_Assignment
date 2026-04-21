@@ -17,6 +17,12 @@ import EditResource from '../pages/resources/EditResource';
 import MyBookings from '../pages/bookings/MyBookings';
 import BookResource from '../pages/bookings/BookResource';
 import AdminBookings from '../pages/bookings/AdminBookings';
+import { useParams } from 'react-router-dom';
+
+const BookResourceRoute = () => {
+  const { id } = useParams();
+  return <BookResource resourceId={id} />;
+};
 
 // Import Ticket Pages
 import TicketList from '../pages/tickets/TicketList';
@@ -84,7 +90,7 @@ const AppRoutes = () => {
       } />
       <Route path="/bookings/book/:id" element={
         <ProtectedRoute>
-          <BookResource />
+          <BookResourceRoute />
         </ProtectedRoute>
       } />
       <Route path="/admin/bookings" element={

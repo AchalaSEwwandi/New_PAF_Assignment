@@ -93,6 +93,10 @@ export default function AdminBookings() {
   const [rejectModal, setRejectModal]   = useState(null);
   const [rejectingId, setRejectingId]   = useState(null);
 
+  const [qrModal, setQrModal]         = useState(null);
+  const [qrLoading, setQrLoading]     = useState(false);
+  const [qrError, setQrError]         = useState("");
+
   const fetchBookings = useCallback(() => {
     setLoading(true);
     setFetchError("");
@@ -100,11 +104,10 @@ export default function AdminBookings() {
     const params = statusFilter !== "ALL" ? { status: statusFilter } : {};
     api
       .get("/api/bookings", { params })
-      .then((res) => setBookings(res.data))
+      .then((data) => setBookings(data || []))
       .catch((err) => {
         setFetchError(
-          err.response?.data?.error ||
-          err.response?.data?.message ||
+          err.message ||
           "Failed to load bookings."
         );
       })
@@ -120,7 +123,7 @@ export default function AdminBookings() {
       await api.put(`/api/bookings/${id}/approve`, {});
       fetchBookings();
     } catch (err) {
-      setActionError(err.response?.data?.error || err.response?.data?.message || "Failed to approve booking.");
+      setActionError(err.message || "Failed to approve booking.");
     } finally {
       setApprovingId(null);
     }
@@ -135,10 +138,24 @@ export default function AdminBookings() {
       setRejectModal(null);
       fetchBookings();
     } catch (err) {
-      setActionError(err.response?.data?.error || err.response?.data?.message || "Failed to reject booking.");
+      setActionError(err.message || "Failed to reject booking.");
       setRejectModal(null);
     } finally {
       setRejectingId(null);
+    }
+  };
+
+  const showQRCode = async (booking) => {
+    setQrModal(booking);
+    setQrLoading(true);
+    setQrError("");
+    try {
+      const data = await api.get(`/api/bookings/${booking.id}/qr`);
+      setQrModal({ ...booking, qrCodeBase64: data.qrCode });
+    } catch (err) {
+      setQrError("Failed to load QR code. It may not be available yet.");
+    } finally {
+      setQrLoading(false);
     }
   };
 
@@ -151,6 +168,46 @@ export default function AdminBookings() {
           onClose={() => setRejectModal(null)}
           submitting={!!rejectingId}
         />
+      )}
+
+      {qrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 shadow-2xl text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Booking Passed</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Present this QR code for verification at the facility.
+            </p>
+
+            <div className="mx-auto flex h-64 w-64 items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 mb-6">
+              {qrLoading ? (
+                <svg className="h-8 w-8 animate-spin text-[#6a0dad]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+              ) : qrError ? (
+                <p className="text-xs text-red-500 px-4">{qrError}</p>
+              ) : qrModal.qrCodeBase64 ? (
+                <img src={qrModal.qrCodeBase64} alt="QR Code" className="h-56 w-56 object-contain" />
+              ) : null}
+            </div>
+
+            <div className="text-left text-sm text-gray-600 space-y-1 mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <p><span className="font-semibold">Resource:</span> {qrModal.resource?.name}</p>
+              <p><span className="font-semibold">Date:</span> {fmtDate(qrModal.startTime)}</p>
+              <p><span className="font-semibold">Time:</span> {fmtTime(qrModal.startTime)} – {fmtTime(qrModal.endTime)}</p>
+            </div>
+
+            <button
+              onClick={() => {
+                setQrModal(null);
+                setQrError("");
+              }}
+              className="w-full rounded-xl bg-gray-100 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 active:scale-95"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="mx-auto max-w-7xl">
@@ -311,6 +368,16 @@ export default function AdminBookings() {
                                 Reject
                               </button>
                             </div>
+                          ) : b.status === "APPROVED" ? (
+                            <button
+                              onClick={() => showQRCode(b)}
+                              className="flex items-center gap-2 rounded-xl border border-[#6a0dad]/20 bg-[#6a0dad]/5 px-4 py-1.5 text-xs font-semibold text-[#6a0dad] transition hover:bg-[#6a0dad]/10 active:scale-95"
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                              </svg>
+                              View Pass
+                            </button>
                           ) : (
                             <span className="text-xs text-gray-300 italic">—</span>
                           )}

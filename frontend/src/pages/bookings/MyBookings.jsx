@@ -46,11 +46,10 @@ export default function MyBookings() {
     setFetchError("");
     api
       .get("/api/bookings/my")
-      .then((res) => setBookings(res.data))
+      .then((data) => setBookings(data || []))
       .catch((err) => {
         setFetchError(
-          err.response?.data?.error ||
-          err.response?.data?.message ||
+          err.message ||
           "Failed to load bookings. Please try again."
         );
       })
@@ -73,8 +72,7 @@ export default function MyBookings() {
       );
     } catch (err) {
       setCancelError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
+        err.message ||
         "Failed to cancel booking."
       );
     } finally {
@@ -87,8 +85,8 @@ export default function MyBookings() {
     setQrLoading(true);
     setQrError("");
     try {
-      const res = await api.get(`/api/bookings/${booking.id}/qr`);
-      setQrModal({ ...booking, qrCodeBase64: res.data.qrCode });
+      const data = await api.get(`/api/bookings/${booking.id}/qr`);
+      setQrModal({ ...booking, qrCodeBase64: data.qrCode });
     } catch (err) {
       setQrError("Failed to load QR code. It may not be available yet.");
     } finally {

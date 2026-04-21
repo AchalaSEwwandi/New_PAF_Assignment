@@ -84,7 +84,7 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Bookings', 'My Schedule', 'Notifications', 'My Profile', 'Settings'];
+  const comingSoonTabs = ['My Schedule', 'Notifications', 'My Profile', 'Settings'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -547,6 +547,13 @@ export default function StudentDashboard({ setCurrentPage }) {
                   setActiveTab('My Bookings');
                 }}
               />
+            </div>
+          )}
+
+          {/* ========== MY BOOKINGS ========== */}
+          {activeTab === 'My Bookings' && (
+            <div className="max-w-[1200px] mx-auto">
+              <MyBookings />
             </div>
           )}
 
