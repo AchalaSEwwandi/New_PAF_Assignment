@@ -7,6 +7,8 @@ const AddResource = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+  
+//form data for resource creation
 
   const [formData, setFormData] = useState({
     name: '',
