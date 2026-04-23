@@ -23,14 +23,17 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
 
     // Constructor injection — no Lombok, no @Autowired on field
     public BookingService(BookingRepository bookingRepository,
                           UserRepository userRepository,
-                          ResourceRepository resourceRepository) {
+                          ResourceRepository resourceRepository,
+                          NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.userRepository    = userRepository;
         this.resourceRepository = resourceRepository;
+        this.notificationService = notificationService;
     }
 
     // -------------------------------------------------------------------------
@@ -47,7 +50,8 @@ public class BookingService {
      * @throws RuntimeException if user or resource is not found, or a conflict exists
      */
     public Booking createBooking(BookingRequest request, String userEmail) {
-
+        System.out.println("DEBUG: Entering createBooking for email: " + userEmail);
+        
         // 1. Resolve user
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException(
@@ -80,7 +84,29 @@ public class BookingService {
         booking.setStatus(Booking.Status.PENDING);
         // createdAt is set in the Booking no-arg constructor
 
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        System.out.println("DEBUG: Creating notifications for booking: " + saved.getId());
+
+        // 5. Notifications
+        // a. To User (confirmation)
+        String userMsg = "Your booking request has been submitted successfully.";
+        notificationService.createNotification(user, com.smartcampus.model.Notification.Type.BOOKING, saved.getId(), userMsg);
+        System.out.println("DEBUG: Notification sent to user: " + user.getEmail());
+
+        // b. To Admins (alert)
+        String adminMsg = "A new booking request has been submitted by a " + user.getRole().toString().toLowerCase() + ".";
+        java.util.List<User> admins = userRepository.findByRole(User.Role.ADMIN);
+        System.out.println("DEBUG: Found " + (admins != null ? admins.size() : 0) + " admins to notify.");
+        if (admins != null) {
+            for (User admin : admins) {
+                if (admin.getStatus() == User.Status.ACTIVE) {
+                    notificationService.createNotification(admin, com.smartcampus.model.Notification.Type.BOOKING, saved.getId(), adminMsg);
+                    System.out.println("DEBUG: Notification sent to admin: " + admin.getEmail());
+                }
+            }
+        }
+
+        return saved;
     }
 
     // -------------------------------------------------------------------------
@@ -142,7 +168,16 @@ public class BookingService {
     public Booking approveBooking(String bookingId) {
         Booking booking = getBookingById(bookingId);
         booking.setStatus(Booking.Status.APPROVED);
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        notificationService.createNotification(
+                booking.getUser(),
+                com.smartcampus.model.Notification.Type.BOOKING,
+                booking.getId(),
+                "Your booking for " + booking.getResource().getName() + " has been approved."
+        );
+
+        return saved;
     }
 
     /**
@@ -158,7 +193,16 @@ public class BookingService {
         Booking booking = getBookingById(bookingId);
         booking.setStatus(Booking.Status.REJECTED);
         booking.setRejectionReason(reason);
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        notificationService.createNotification(
+                booking.getUser(),
+                com.smartcampus.model.Notification.Type.BOOKING,
+                booking.getId(),
+                "Your booking for " + booking.getResource().getName() + " has been rejected. Reason: " + reason
+        );
+
+        return saved;
     }
 
     /**

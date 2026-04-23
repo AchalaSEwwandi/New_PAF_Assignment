@@ -47,58 +47,57 @@ export default function SignIn({ setCurrentPage }) {
       'response_type=token&' +
       'scope=email profile&' +
       'include_granted_scopes=true';
-    
+
     window.open(googleAuthUrl, '_blank', 'width=500,height=600');
   };
 
   // Handle Google OAuth callback
   useEffect(() => {
     const handleGoogleCallback = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      
+      // Extract token from URL hash (Google Implicit Flow)
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get('access_token');
+
       if (token) {
-        // Step 2: Send token to backend
-        fetch('http://localhost:8080/api/auth/google', {
+        console.log('Found Google token, sending to backend...');
+        // Step 2: Send token to backend (using port 8082)
+        fetch('http://localhost:8082/api/auth/google', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            token: token
+            token: token,
+            role: 'STUDENT' // Default to STUDENT role as requested
           })
         })
-        .then(res => res.json())
-        .then(data => {
-          if (data.jwt) {
-            // Step 4: Store JWT and redirect based on role
-            localStorage.setItem('jwt', data.jwt);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            // Redirect based on user role
-            if (data.user.role === 'ADMIN') {
-              window.location.href = '/admin';
-            } else if (data.user.role === 'STUDENT') {
-              window.location.href = '/student';
-            } else if (data.user.role === 'LECTURER') {
-              alert('Your account has been approved. You can now access the dashboard.');
-              window.location.href = '/lecturer';
-            } else if (data.user.role === 'TECHNICIAN') {
-              alert('Your account has been approved. You can now access the dashboard.');
-              window.location.href = '/technician';
+          .then(res => res.json())
+          .then(data => {
+            if (data.jwt) {
+              // Step 4: Store JWT and redirect to Student Dashboard
+              localStorage.setItem('jwt', data.jwt);
+              localStorage.setItem('user', JSON.stringify(data.user));
+
+              console.log('Login successful, redirecting to student dashboard');
+              if (window.opener) {
+                // If in a popup, redirect the opener and close
+                window.opener.location.href = '/student';
+                window.close();
+              } else {
+                // If not in a popup, redirect current window
+                window.location.href = '/student';
+              }
+            } else if (data.status === 'PENDING' || data.message?.includes('approval')) {
+              alert('Your account is not approved yet. Please wait for admin approval.');
             } else {
-              window.location.href = '/dashboard';
+              alert('Google login failed: ' + (data.message || 'Authentication failed'));
             }
-          } else if (data.status === 'PENDING' || data.message?.includes('approval')) {
-            alert('Your account is not approved yet. Please wait for admin approval. A notification email will be sent once approved.');
-          } else {
-            alert('Google login failed: ' + (data.message || 'Authentication failed'));
-          }
-        })
-        .catch(error => {
-          console.error('Google login error:', error);
-          alert('Google login failed');
-        });
+          })
+          .catch(error => {
+            console.error('Google login error:', error);
+            alert('Google login failed');
+          });
       }
     };
 
@@ -120,7 +119,7 @@ export default function SignIn({ setCurrentPage }) {
     };
 
     console.log('Connecting to backend with:', loginData);
-    
+
     // Backend API call
     fetch('http://localhost:8082/api/auth/login', {
       method: 'POST',
@@ -129,41 +128,41 @@ export default function SignIn({ setCurrentPage }) {
       },
       body: JSON.stringify(loginData)
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.jwt) {
-        // Store JWT and user data
-        localStorage.setItem('jwt', data.jwt);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Redirect based on user role
-        if (data.user.role === 'ADMIN') {
-          window.location.href = '/admin';
-        } else if (data.user.role === 'STUDENT') {
-          window.location.href = '/student';
-        } else if (data.user.role === 'LECTURER') {
-          alert('Your account has been approved. You can now access the dashboard.');
-          window.location.href = '/lecturer';
-        } else if (data.user.role === 'TECHNICIAN') {
-          alert('Your account has been approved. You can now access the dashboard.');
-          window.location.href = '/technician';
+      .then(res => res.json())
+      .then(data => {
+        if (data.jwt) {
+          // Store JWT and user data
+          localStorage.setItem('jwt', data.jwt);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          // Redirect based on user role
+          if (data.user.role === 'ADMIN') {
+            window.location.href = '/admin';
+          } else if (data.user.role === 'STUDENT') {
+            window.location.href = '/student';
+          } else if (data.user.role === 'LECTURER') {
+            alert('Your account has been approved. You can now access the dashboard.');
+            window.location.href = '/lecturer';
+          } else if (data.user.role === 'TECHNICIAN') {
+            alert('Your account has been approved. You can now access the dashboard.');
+            window.location.href = '/technician';
+          } else {
+            window.location.href = '/dashboard';
+          }
+        } else if (data.status === 'PENDING' || data.message?.includes('approval') || data.message?.includes('Waiting for admin approval')) {
+          setSubmitError('Your account is not approved yet. Please wait for the Admin to approve your account.');
+          alert('Your account is not approved yet. Please wait for admin approval. A notification email will be sent once approved.');
         } else {
-          window.location.href = '/dashboard';
+          // Show error message
+          setSubmitError('Login failed: ' + (data.message || 'Invalid credentials'));
+          alert('Login failed: ' + (data.message || 'Invalid credentials'));
         }
-      } else if (data.status === 'PENDING' || data.message?.includes('approval') || data.message?.includes('Waiting for admin approval')) {
-        setSubmitError('Your account is not approved yet. Please wait for the Admin to approve your account.');
-        alert('Your account is not approved yet. Please wait for admin approval. A notification email will be sent once approved.');
-      } else {
-        // Show error message
-        setSubmitError('Login failed: ' + (data.message || 'Invalid credentials'));
-        alert('Login failed: ' + (data.message || 'Invalid credentials'));
-      }
-    })
-    .catch(error => {
-      console.error('Login error:', error);
-      setSubmitError('Login failed: Please check your credentials');
-      alert('Login failed: Please check your credentials');
-    });
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        setSubmitError('Login failed: Please check your credentials');
+        alert('Login failed: Please check your credentials');
+      });
   };
 
   const handleRegister = () => {
@@ -202,9 +201,9 @@ export default function SignIn({ setCurrentPage }) {
           }}>
             <span style={{ color: 'white', fontWeight: 'bold', fontSize: '24px' }}>SC</span>
           </div>
-          <h1 style={{ 
-            color: '#1f2937', 
-            fontSize: '28px', 
+          <h1 style={{
+            color: '#1f2937',
+            fontSize: '28px',
             fontWeight: 'bold',
             margin: '16px 0 8px'
           }}>
@@ -246,24 +245,24 @@ export default function SignIn({ setCurrentPage }) {
               type="email"
               placeholder="Email address"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               style={{
-  width: '100%',
-  padding: '12px',
-  border: '1px solid #d1d5db',
-  borderRadius: '8px',
-  fontSize: '16px',
-  backgroundColor: '#ffffff',
-  color: '#000000',
-  marginBottom: '4px',
-  WebkitAppearance: 'none',
-  MozAppearance: 'none',
-  appearance: 'none',
-  outline: 'none',
-  boxSizing: 'border-box',
-  WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
-  WebkitTextFillColor: '#000000'                    // ← add
-}}
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '16px',
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                marginBottom: '4px',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none',
+                outline: 'none',
+                boxSizing: 'border-box',
+                WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
+                WebkitTextFillColor: '#000000'                    // ← add
+              }}
             />
             {errors.email && (
               <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '4px' }}>
@@ -275,24 +274,24 @@ export default function SignIn({ setCurrentPage }) {
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 style={{
-  width: '100%',
-  padding: '12px',
-  border: '1px solid #d1d5db',
-  borderRadius: '8px',
-  fontSize: '16px',
-  backgroundColor: '#ffffff',
-  color: '#000000',
-  marginBottom: '4px',
-  WebkitAppearance: 'none',
-  MozAppearance: 'none',
-  appearance: 'none',
-  outline: 'none',
-  boxSizing: 'border-box',
-  WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
-  WebkitTextFillColor: '#000000'                    // ← add
-}}
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#ffffff',
+                  color: '#000000',
+                  marginBottom: '4px',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  appearance: 'none',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
+                  WebkitTextFillColor: '#000000'                    // ← add
+                }}
               />
               <button
                 type="button"
@@ -310,17 +309,17 @@ export default function SignIn({ setCurrentPage }) {
                 }}
               >
                 {showPassword ? (
-               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-) : (
-                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-)}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                )}
               </button>
             </div>
             {errors.password && (
@@ -334,24 +333,24 @@ export default function SignIn({ setCurrentPage }) {
                   type={showPassword ? "text" : "password"}
                   placeholder="Re-enter Password"
                   value={formData.reEnterPassword}
-                  onChange={(e) => setFormData({...formData, reEnterPassword: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, reEnterPassword: e.target.value })}
                   style={{
-  width: '100%',
-  padding: '12px',
-  border: '1px solid #d1d5db',
-  borderRadius: '8px',
-  fontSize: '16px',
-  backgroundColor: '#ffffff',
-  color: '#000000',
-  marginBottom: '4px',
-  WebkitAppearance: 'none',
-  MozAppearance: 'none',
-  appearance: 'none',
-  outline: 'none',
-  boxSizing: 'border-box',
-  WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
-  WebkitTextFillColor: '#000000'                    // ← add
-}}
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    marginBottom: '4px',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    WebkitBoxShadow: '0 0 0 1000px #ffffff inset',   // ← add
+                    WebkitTextFillColor: '#000000'                    // ← add
+                  }}
                 />
                 <button
                   type="button"
@@ -369,17 +368,17 @@ export default function SignIn({ setCurrentPage }) {
                   }}
                 >
                   {showPassword ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-)}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
                 </button>
               </div>
             )}

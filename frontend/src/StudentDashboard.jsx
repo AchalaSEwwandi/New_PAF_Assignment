@@ -6,6 +6,9 @@ import TicketList from './pages/tickets/TicketList';
 import CreateTicket from './pages/tickets/CreateTicket';
 import TicketDetails from './pages/tickets/TicketDetails';
 import BookResource from './pages/bookings/BookResource';
+import NotificationPreferences from './pages/settings/NotificationPreferences';
+import NotificationDropdown from './components/NotificationDropdown';
+import NotificationsPage from './pages/notifications/NotificationsPage';
 
 export default function StudentDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -20,6 +23,7 @@ export default function StudentDashboard({ setCurrentPage }) {
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [selectedBookingResourceId, setSelectedBookingResourceId] = useState(null);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
 
   useEffect(() => {
     if (activeTab === 'Facilities') {
@@ -76,7 +80,7 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'My Schedule', icon: <FiFileText size={18} /> },
     { name: 'My Tickets', icon: <FiTool size={18} /> },
     { name: 'Report Issue', icon: <FiTool size={18} /> },
-    { name: 'Notifications', icon: <FiBell size={18} />, badge: 3 },
+    { name: 'Notifications', icon: <FiBell size={18} />, badge: notifUnreadCount },
   ];
 
   const accountNavItems = [
@@ -84,7 +88,7 @@ export default function StudentDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Schedule', 'Notifications', 'My Profile', 'Settings'];
+  const comingSoonTabs = ['My Schedule', 'My Profile'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -182,10 +186,7 @@ export default function StudentDashboard({ setCurrentPage }) {
               />
             </div>
 
-            <button className="relative text-gray-500 hover:text-gray-700 transition">
-              <FiBell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
+            <NotificationDropdown onUnreadCountChange={setNotifUnreadCount} />
 
             <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition">
               <div className="w-6 h-6 rounded-full bg-[#6a0dad] flex items-center justify-center text-white font-bold text-[10px]">
@@ -584,6 +585,20 @@ export default function StudentDashboard({ setCurrentPage }) {
                 ticketId={selectedTicketId}
                 onBack={handleBackToList}
               />
+            </div>
+          )}
+
+          {/* ========== SETTINGS / PREFERENCES ========== */}
+          {activeTab === 'Settings' && (
+            <div className="max-w-[1200px] mx-auto pt-4">
+              <NotificationPreferences />
+            </div>
+          )}
+
+          {/* ========== NOTIFICATIONS PAGE ========== */}
+          {activeTab === 'Notifications' && (
+            <div className="max-w-[1200px] mx-auto pt-4">
+              <NotificationsPage onUnreadCountChange={setNotifUnreadCount} />
             </div>
           )}
 
