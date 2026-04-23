@@ -7,6 +7,7 @@ import AdminTicketPanel from './pages/tickets/AdminTicketPanel';
 import NotificationDropdown from './components/NotificationDropdown';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import NotificationPreferences from './pages/settings/NotificationPreferences';
+import AdminProfile from './pages/profile/AdminProfile';
 
 export default function AdminDashboard({ setCurrentPage }) {
   const [users, setUsers] = useState([]);
@@ -139,7 +140,7 @@ export default function AdminDashboard({ setCurrentPage }) {
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['Resources', 'Profile'];
+  const comingSoonTabs = ['Resources'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -478,6 +479,12 @@ export default function AdminDashboard({ setCurrentPage }) {
           {activeTab === 'Tickets' && (
             <div className="max-w-[1200px] mx-auto">
               <AdminTicketPanel />
+            </div>
+          )}
+
+          {activeTab === 'Profile' && (
+            <div className="max-w-[1200px] mx-auto">
+              <AdminProfile />
             </div>
           )}
 
