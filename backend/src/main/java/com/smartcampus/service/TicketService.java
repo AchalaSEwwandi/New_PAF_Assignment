@@ -25,6 +25,9 @@ public class TicketService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // ---------------------------------------------------------------
     // CREATE ticket
     // ---------------------------------------------------------------
@@ -70,8 +73,30 @@ public class TicketService {
         ticket.setTitle(categoryLabel + " issue at " + location);
 
         ticket.setStatus(Ticket.Status.OPEN);
+        Ticket saved = ticketRepository.save(ticket);
 
-        return ticketRepository.save(ticket);
+        // 1. Notification to Student (confirmation)
+        notificationService.createNotification(
+                user,
+                com.smartcampus.model.Notification.Type.TICKET,
+                saved.getId(),
+                "Your ticket has been created successfully."
+        );
+
+        // 2. Notification to Admin (new ticket created)
+        java.util.List<User> admins = userRepository.findByRole(User.Role.ADMIN);
+        for (User admin : admins) {
+            if (admin.getStatus() == User.Status.ACTIVE) {
+                notificationService.createNotification(
+                        admin,
+                        com.smartcampus.model.Notification.Type.TICKET,
+                        saved.getId(),
+                        "A new ticket has been submitted by a student."
+                );
+            }
+        }
+
+        return saved;
     }
 
     // ---------------------------------------------------------------
@@ -135,7 +160,30 @@ public class TicketService {
         comment.setAuthor(user);
         comment.setContent(content.trim());
 
-        return commentRepository.save(comment);
+        TicketComment savedComment = commentRepository.save(comment);
+
+        // 1. Notify ticket owner if comment is from someone else (tech/admin)
+        if (ticket.getCreatedBy() != null && !ticket.getCreatedBy().getEmail().equals(userEmail)) {
+            notificationService.createNotification(
+                    ticket.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.NEW_COMMENT,
+                    ticket.getId(),
+                    "New comment on your ticket: " + ticket.getTitle()
+            );
+        }
+
+        // 2. Notify assigned technician if student comments
+        if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().getEmail().equals(userEmail)
+            && ticket.getCreatedBy() != null && ticket.getCreatedBy().getEmail().equals(userEmail)) {
+            notificationService.createNotification(
+                    ticket.getAssignedTo(),
+                    com.smartcampus.model.Notification.Type.NEW_COMMENT,
+                    ticket.getId(),
+                    "The student has added a comment to your assigned ticket: " + ticket.getTitle()
+            );
+        }
+
+        return savedComment;
     }
 
     // ---------------------------------------------------------------
@@ -167,7 +215,34 @@ public class TicketService {
         }
 
         ticket.updateTimestamp();
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify owner
+        if (ticket.getCreatedBy() != null) {
+            String message;
+            if (ticket.getStatus() == Ticket.Status.REJECTED) {
+                message = "Your ticket for " + ticket.getResourceOrLocation() + " has been rejected. Reason: " + ticket.getRejectionReason();
+            } else {
+                message = "Your ticket status has been updated to: " + ticket.getStatus().toString().toLowerCase().replace("_", " ") + ".";
+            }
+
+            notificationService.createNotification(
+                    ticket.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.TICKET,
+                    ticket.getId(),
+                    message
+            );
+        }
+
+        // Notify Admin/Tech (confirmation of their own action)
+        notificationService.createNotification(
+                user,
+                com.smartcampus.model.Notification.Type.TICKET,
+                ticket.getId(),
+                "You have updated the ticket status to: " + ticket.getStatus().toString().toLowerCase().replace("_", " ") + "."
+        );
+
+        return saved;
     }
 
     // ---------------------------------------------------------------
@@ -194,7 +269,35 @@ public class TicketService {
             ticket.setStatus(Ticket.Status.IN_PROGRESS);
         }
         ticket.updateTimestamp();
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // 1. Notify Technician
+        notificationService.createNotification(
+                technician,
+                com.smartcampus.model.Notification.Type.TICKET,
+                saved.getId(),
+                "A new ticket has been assigned to you: " + saved.getTitle()
+        );
+
+        // 2. Notify Student (Owner)
+        if (saved.getCreatedBy() != null) {
+            notificationService.createNotification(
+                    saved.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.TICKET,
+                    saved.getId(),
+                    "A technician (" + technician.getFullName() + ") has been assigned to your ticket: " + saved.getTitle()
+            );
+        }
+
+        // 3. Notify Admin (Confirmation)
+        notificationService.createNotification(
+                admin,
+                com.smartcampus.model.Notification.Type.TICKET,
+                saved.getId(),
+                "Technician " + technician.getFullName() + " has been assigned to the ticket."
+        );
+
+        return saved;
     }
 
     // ---------------------------------------------------------------
@@ -248,7 +351,27 @@ public class TicketService {
         ticket.setStatus(Ticket.Status.REJECTED);
         ticket.setRejectionReason(reason.trim());
         ticket.updateTimestamp();
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify owner
+        if (saved.getCreatedBy() != null) {
+            notificationService.createNotification(
+                    saved.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.TICKET,
+                    saved.getId(),
+                    "Your ticket for " + saved.getResourceOrLocation() + " has been rejected. Reason: " + saved.getRejectionReason()
+            );
+        }
+
+        // Notify Admin (confirmation)
+        notificationService.createNotification(
+                admin,
+                com.smartcampus.model.Notification.Type.TICKET,
+                saved.getId(),
+                "You have rejected the ticket. Reason: " + saved.getRejectionReason()
+        );
+
+        return saved;
     }
 
     // ---------------------------------------------------------------
@@ -305,7 +428,27 @@ public class TicketService {
             ticket.setResolutionNotes(resolutionNotes.trim());
         }
         ticket.updateTimestamp();
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify owner
+        if (ticket.getCreatedBy() != null) {
+            notificationService.createNotification(
+                    ticket.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.TICKET,
+                    ticket.getId(),
+                    "Your ticket status has been updated to: " + ticket.getStatus().toString().toLowerCase().replace("_", " ") + " by a technician."
+            );
+        }
+
+        // Notify Technician (confirmation)
+        notificationService.createNotification(
+                tech,
+                com.smartcampus.model.Notification.Type.TICKET,
+                ticket.getId(),
+                "You have updated the ticket status to: " + ticket.getStatus().toString().toLowerCase().replace("_", " ") + "."
+        );
+
+        return saved;
     }
 
     // ---------------------------------------------------------------
@@ -318,7 +461,19 @@ public class TicketService {
         Ticket ticket = getAssignedTicketById(ticketId, techEmail);
         ticket.setResolutionNotes(notes.trim());
         ticket.updateTimestamp();
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify Student
+        if (saved.getCreatedBy() != null) {
+            notificationService.createNotification(
+                    saved.getCreatedBy(),
+                    com.smartcampus.model.Notification.Type.TICKET,
+                    saved.getId(),
+                    "Resolution notes have been added to your ticket: " + saved.getTitle()
+            );
+        }
+
+        return saved;
     }
 
     // ---------------------------------------------------------------

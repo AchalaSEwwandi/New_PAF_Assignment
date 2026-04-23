@@ -5,6 +5,10 @@ import {
 } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
 import ticketService from './services/ticketService';
+import NotificationDropdown from './components/NotificationDropdown';
+import NotificationsPage from './pages/notifications/NotificationsPage';
+import NotificationPreferences from './pages/settings/NotificationPreferences';
+import { FiUser, FiSettings } from 'react-icons/fi';
 
 // ─── Shared badge/meta maps ───────────────────────────────────────
 const STATUS_META = {
@@ -595,6 +599,7 @@ function CompletedHistoryPanel({ mode, onViewDetail }) {
 export default function TechnicianDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab]       = useState('Dashboard');
   const [viewTicketId, setViewTicketId] = useState(null);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
 
   const jwt  = localStorage.getItem('jwt');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -622,13 +627,17 @@ export default function TechnicianDashboard({ setCurrentPage }) {
     { name: 'My Tickets', icon: <FiTag size={18} /> },
     { name: 'Campus Map', icon: <FiMap size={18} /> },
     { name: 'Completed', icon: <FiCheckSquare size={18} /> },
-    { name: 'Notifications', icon: <FiBell size={18} /> },
+    { name: 'Notifications', icon: <FiBell size={18} />, badge: notifUnreadCount },
   ];
   const reportNavItems = [
     { name: 'Work Report', icon: <FiBarChart2 size={18} /> },
     { name: 'History', icon: <FiFileText size={18} /> },
   ];
-  const comingSoonTabs = ['Campus Map', 'Notifications', 'Work Report'];
+  const accountNavItems = [
+    { name: 'My Profile', icon: <FiUser size={18} /> },
+    { name: 'Settings', icon: <FiSettings size={18} /> },
+  ];
+  const comingSoonTabs = ['Campus Map', 'Work Report', 'My Profile'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -670,6 +679,9 @@ export default function TechnicianDashboard({ setCurrentPage }) {
                       <span className={activeTab === item.name ? 'text-white' : ''}>{item.icon}</span>
                       <span className="text-[14px]">{item.name}</span>
                     </div>
+                    {item.badge > 0 && (
+                      <span className="bg-[#ef4444] text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full leading-none">{item.badge}</span>
+                    )}
                   </button>
                 </li>
               ))}
@@ -686,6 +698,29 @@ export default function TechnicianDashboard({ setCurrentPage }) {
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                       activeTab === item.name
                         ? 'bg-[#6a0dad] text-white font-semibold outline outline-1 outline-[#6a0dad]/20 shadow-sm'
+                        : 'text-[#d8b4fe]/70 hover:text-white hover:bg-[#6a0dad]/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={activeTab === item.name ? 'text-white' : ''}>{item.icon}</span>
+                      <span className="text-[14px]">{item.name}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="px-4 text-[11px] font-bold text-[#d8b4fe] uppercase tracking-wider mb-3">Account</h3>
+            <ul className="space-y-1">
+              {accountNavItems.map(item => (
+                <li key={item.name}>
+                  <button
+                    onClick={() => navigateTo(item.name)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                      activeTab === item.name
+                        ? 'bg-[#6a0dad] text-white font-semibold shadow-sm'
                         : 'text-[#d8b4fe]/70 hover:text-white hover:bg-[#6a0dad]/50'
                     }`}
                   >
@@ -721,9 +756,7 @@ export default function TechnicianDashboard({ setCurrentPage }) {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#6a0dad]/20 focus:border-[#6a0dad] w-[240px] transition-all" />
             </div>
-            <button className="relative text-gray-500 hover:text-gray-700 transition">
-              <FiBell size={20} />
-            </button>
+            <NotificationDropdown onUnreadCountChange={setNotifUnreadCount} />
             <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition">
               <div className="w-6 h-6 rounded-full bg-[#6a0dad] flex items-center justify-center text-white font-bold text-[10px]">{initial}</div>
               <span className="text-sm font-medium pr-1 text-gray-700">{firstName}</span>
@@ -801,6 +834,20 @@ export default function TechnicianDashboard({ setCurrentPage }) {
           )}
 
           {/* ── Coming Soon ── */}
+          {/* ── Notifications ── */}
+          {activeTab === 'Notifications' && (
+            <div className="max-w-[1200px] mx-auto">
+              <NotificationsPage onUnreadCountChange={setNotifUnreadCount} />
+            </div>
+          )}
+
+          {/* ── Settings ── */}
+          {activeTab === 'Settings' && (
+            <div className="max-w-[1200px] mx-auto">
+              <NotificationPreferences />
+            </div>
+          )}
+
           {comingSoonTabs.includes(activeTab) && (
             <div className="flex flex-col items-center justify-center h-full text-center py-24">
               <div className="w-20 h-20 bg-[#6a0dad]/10 rounded-2xl flex items-center justify-center mb-6">

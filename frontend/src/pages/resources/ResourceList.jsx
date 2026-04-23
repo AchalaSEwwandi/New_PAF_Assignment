@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
 import * as resourceService from '../../services/resourceService';
 
+//Resource List
 const ResourceList = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);

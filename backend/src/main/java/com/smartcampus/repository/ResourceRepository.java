@@ -1,11 +1,12 @@
 package com.smartcampus.repository;
 
-import com.smartcampus.model.Resource;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
+import com.smartcampus.model.Resource;
+//Repository interface for Resource entity, extends MongoRepository to provide CRUD operations
 @Repository
 public interface ResourceRepository extends MongoRepository<Resource, String> {
 

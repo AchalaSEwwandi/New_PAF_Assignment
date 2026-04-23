@@ -4,14 +4,18 @@ import { BiBuildingHouse } from 'react-icons/bi';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import AdminBookings from './pages/bookings/AdminBookings';
 import AdminTicketPanel from './pages/tickets/AdminTicketPanel';
+import NotificationDropdown from './components/NotificationDropdown';
+import NotificationsPage from './pages/notifications/NotificationsPage';
+import NotificationPreferences from './pages/settings/NotificationPreferences';
 
 export default function AdminDashboard({ setCurrentPage }) {
   const [users, setUsers] = useState([]);
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Manage Users'); // Default to Manage Users for debugging
+  const [activeTab, setActiveTab] = useState('Manage Users');
   const [approvalRoles, setApprovalRoles] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
   const jwt = localStorage.getItem('jwt');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -130,12 +134,12 @@ export default function AdminDashboard({ setCurrentPage }) {
     { name: 'Resources', icon: <FiBox size={18} /> },
     { name: 'Bookings', icon: <FiCalendar size={18} /> },
     { name: 'Tickets', icon: <FiAlertCircle size={18} /> },
-    { name: 'Notifications', icon: <FiBell size={18} /> },
+    { name: 'Notifications', icon: <FiBell size={18} />, badge: notifUnreadCount },
     { name: 'Profile', icon: <FiUser size={18} /> },
     { name: 'Settings', icon: <FiSettings size={18} /> },
   ];
 
-  const comingSoonTabs = ['Resources', 'Bookings', 'Notifications', 'Profile', 'Settings'];
+  const comingSoonTabs = ['Resources', 'Profile'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -183,7 +187,7 @@ export default function AdminDashboard({ setCurrentPage }) {
                     <span className="text-[14px]">{item.name}</span>
                   </div>
                   {item.badge > 0 && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
+                    <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full leading-none">{item.badge}</span>
                   )}
                 </button>
               </li>
@@ -220,10 +224,7 @@ export default function AdminDashboard({ setCurrentPage }) {
               />
             </div>
 
-            <button className="relative text-gray-500 hover:text-gray-700 transition">
-              <FiBell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
+            <NotificationDropdown onUnreadCountChange={setNotifUnreadCount} />
 
             <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition">
               <div className="w-6 h-6 rounded-full bg-[#6a0dad] flex items-center justify-center text-white font-bold text-[10px]">
@@ -462,6 +463,18 @@ export default function AdminDashboard({ setCurrentPage }) {
 
           {activeTab === 'Bookings' && (
             <AdminBookings />)}
+          {activeTab === 'Notifications' && (
+            <div className="max-w-[1200px] mx-auto">
+              <NotificationsPage onUnreadCountChange={setNotifUnreadCount} />
+            </div>
+          )}
+
+          {activeTab === 'Settings' && (
+            <div className="max-w-[1200px] mx-auto pt-4">
+              <NotificationPreferences />
+            </div>
+          )}
+
           {activeTab === 'Tickets' && (
             <div className="max-w-[1200px] mx-auto">
               <AdminTicketPanel />
