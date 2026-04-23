@@ -7,13 +7,20 @@ import ResetPassword from './ResetPassword';
 import StudentDashboard from './StudentDashboard';
 import LecturerDashboard from './LecturerDashboard';
 import TechnicianDashboard from './TechnicianDashboard';
+import VerifyPass from './pages/bookings/VerifyPass';
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState(() => {
+    // Check for QR verification link
+    if (window.location.pathname.includes('/verify') || window.location.search.includes('id=')) {
+      return 'verify-pass';
+    }
     if (window.location.hash.includes('access_token') || window.location.pathname.includes('/auth/callback')) {
       return 'signin';
     }
     return 'home';
   });
+
   const [activeTab, setActiveTab] = useState('Dashboard');
 
   const handleNavClick = (tab) => {
@@ -40,6 +47,11 @@ export default function App() {
   const handleRegister = () => {
     setCurrentPage('register');
   };
+
+  // Show Verify Pass page (from QR scan)
+  if (currentPage === 'verify-pass') {
+    return <VerifyPass />;
+  }
 
   // Show Sign-In page
   if (currentPage === 'signin') {

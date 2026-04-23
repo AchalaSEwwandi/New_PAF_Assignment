@@ -76,7 +76,7 @@ export default function StudentDashboard({ setCurrentPage }) {
   const mainNavItems = [
     { name: 'Dashboard', icon: <FiHome size={18} /> },
     { name: 'Facilities', icon: <FiBox size={18} /> },
-    { name: 'My Bookings', icon: <FiCalendar size={18} />, badge: 2 },
+    { name: 'My Bookings', icon: <FiCalendar size={18} /> },
     { name: 'My Schedule', icon: <FiFileText size={18} /> },
     { name: 'My Tickets', icon: <FiTool size={18} /> },
     { name: 'Report Issue', icon: <FiTool size={18} /> },

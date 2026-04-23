@@ -69,15 +69,9 @@ public class QRCodeService {
     // -------------------------------------------------------------------------
 
     private String buildPayload(Booking booking) {
-        return "SMART CAMPUS - OFFICIAL PASS\n"
-             + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-             + "Booking ID: " + booking.getId() + "\n"
-             + "User: "       + (booking.getUser() != null ? (booking.getUser().getFullName() != null ? booking.getUser().getFullName() : booking.getUser().getEmail()) : "Unknown") + "\n"
-             + "Resource: "   + (booking.getResource() != null ? booking.getResource().getName() : "Unknown") + "\n"
-             + "Start: "      + booking.getStartTime() + "\n"
-             + "End: "        + booking.getEndTime() + "\n"
-             + "Status: "     + booking.getStatus() + "\n"
-             + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+        // Point to the frontend's new verification page
+        // Use the machine's local IP to allow phone access
+        return "http://192.168.1.11:5173/verify?id=" + booking.getId();
     }
 
     private String safeId(Object entity) {
@@ -89,8 +83,10 @@ public class QRCodeService {
 
     private byte[] encode(String content) throws WriterException, IOException {
         Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
-        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
-        hints.put(EncodeHintType.MARGIN, 2);
+        // ErrorCorrectionLevel.H (High) for maximum robustness
+        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+        hints.put(EncodeHintType.MARGIN, 4); // Clear space around the QR
+        hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
 
         QRCodeWriter writer = new QRCodeWriter();
         BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE, QR_WIDTH, QR_HEIGHT, hints);

@@ -1,7 +1,9 @@
 // Frontend API service — base fetch wrapper
 // Backend runs on port 8082
 
-const BASE_URL = 'http://localhost:8082';
+const BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8082'
+  : `http://${window.location.hostname}:8082`;
 
 function getAuthHeaders() {
   const jwt = localStorage.getItem('jwt');
