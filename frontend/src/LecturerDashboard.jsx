@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiBell, FiLogOut, FiHome, FiArchive, FiCalendar, FiUsers, FiFolder, FiBarChart2, FiFileText } from 'react-icons/fi';
+import { FiSearch, FiBell, FiLogOut, FiHome, FiArchive, FiCalendar, FiUsers, FiFolder, FiBarChart2, FiFileText, FiUser, FiSettings } from 'react-icons/fi';
 import BookResource from './pages/bookings/BookResource';
 import MyBookings from './pages/bookings/MyBookings';
 import { BiBuildingHouse } from 'react-icons/bi';
+import NotificationDropdown from './components/NotificationDropdown';
+import NotificationsPage from './pages/notifications/NotificationsPage';
+import NotificationPreferences from './pages/settings/NotificationPreferences';
 
 export default function LecturerDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -16,6 +19,7 @@ export default function LecturerDashboard({ setCurrentPage }) {
   const [capacityFilter, setCapacityFilter] = useState('');
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedBookingResourceId, setSelectedBookingResourceId] = useState(null);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
 
   useEffect(() => {
     if (activeTab === 'Resources') {
@@ -56,7 +60,7 @@ export default function LecturerDashboard({ setCurrentPage }) {
     { name: 'Book Facility', icon: <FiArchive size={18} /> },
     { name: 'My Students', icon: <FiUsers size={18} /> },
     { name: 'Resources', icon: <FiFolder size={18} /> },
-    { name: 'Notifications', icon: <FiBell size={18} />, badge: 4 },
+    { name: 'Notifications', icon: <FiBell size={18} />, badge: notifUnreadCount },
   ];
 
   const reportNavItems = [
@@ -64,7 +68,12 @@ export default function LecturerDashboard({ setCurrentPage }) {
     { name: 'Reports', icon: <FiFileText size={18} /> },
   ];
 
-  const comingSoonTabs = ['My Classes', 'My Students', 'Notifications', 'Attendance', 'Reports'];
+  const accountNavItems = [
+    { name: 'My Profile', icon: <FiUser size={18} /> },
+    { name: 'Settings', icon: <FiSettings size={18} /> },
+  ];
+
+  const comingSoonTabs = ['My Classes', 'My Students', 'Attendance', 'Reports', 'My Profile'];
 
   return (
     <div className="flex h-screen bg-[#f3f4f6] font-dm-sans">
@@ -136,6 +145,28 @@ export default function LecturerDashboard({ setCurrentPage }) {
               ))}
             </ul>
           </div>
+
+          <div>
+            <h3 className="px-4 text-[11px] font-bold text-[#d8b4fe] uppercase tracking-wider mb-3">Account</h3>
+            <ul className="space-y-1">
+              {accountNavItems.map(item => (
+                <li key={item.name}>
+                  <button
+                    onClick={() => setActiveTab(item.name)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeTab === item.name
+                        ? 'bg-[#6a0dad] text-white font-semibold'
+                        : 'text-[#d8b4fe]/70 hover:text-white hover:bg-[#6a0dad]/50'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`${activeTab === item.name ? 'text-white' : ''}`}>{item.icon}</span>
+                      <span className="text-[14px]">{item.name}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {/* Logout */}
@@ -167,12 +198,7 @@ export default function LecturerDashboard({ setCurrentPage }) {
               />
             </div>
 
-            <button className="relative text-gray-500 hover:text-gray-700 transition">
-              <FiBell size={20} />
-              {mainNavItems.find(i => i.name === 'Notifications')?.badge > 0 && (
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-              )}
-            </button>
+            <NotificationDropdown onUnreadCountChange={setNotifUnreadCount} />
 
             <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-50 transition">
               <div className="w-6 h-6 rounded-full bg-[#6a0dad] flex items-center justify-center text-white font-bold text-[10px]">
@@ -540,6 +566,20 @@ export default function LecturerDashboard({ setCurrentPage }) {
               ) : (
                 <MyBookings />
               )}
+            </div>
+          )}
+
+          {/* ========== NOTIFICATIONS PAGE ========== */}
+          {activeTab === 'Notifications' && (
+            <div className="max-w-[1200px] mx-auto pt-4">
+              <NotificationsPage onUnreadCountChange={setNotifUnreadCount} />
+            </div>
+          )}
+
+          {/* ========== SETTINGS / PREFERENCES ========== */}
+          {activeTab === 'Settings' && (
+            <div className="max-w-[1200px] mx-auto pt-4">
+              <NotificationPreferences />
             </div>
           )}
 
