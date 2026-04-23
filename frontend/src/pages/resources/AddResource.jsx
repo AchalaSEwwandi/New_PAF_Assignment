@@ -54,7 +54,7 @@ const AddResource = () => {
       if (formErrors.availableTo) setFormErrors({ ...formErrors, availableTo: false });
     }
   };
-
+  //select resources based on resource ID
   const getLocationOptions = () => {
     switch (formData.type) {
       case 'LECTURE_HALL':
