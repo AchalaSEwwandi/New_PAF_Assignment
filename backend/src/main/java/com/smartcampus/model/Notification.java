@@ -13,6 +13,7 @@ public class Notification {
     public enum Type {
         BOOKING,
         TICKET,
+        NEW_COMMENT,
         SYSTEM
     }
 

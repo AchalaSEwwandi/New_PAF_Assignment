@@ -45,11 +45,52 @@ public class User {
     @Field("is_active")
     private Boolean active = true;
 
+    @Field("notification_preferences")
+    private NotificationPreferences notificationPreferences = new NotificationPreferences();
+
     @Field("created_at")
     private LocalDateTime createdAt;
 
+    public static class NotificationPreferences {
+        private boolean bookingUpdates = true;
+        private boolean ticketUpdates = true;
+        private boolean newComments = true;
+
+        public boolean isBookingUpdates() {
+            return bookingUpdates;
+        }
+
+        public void setBookingUpdates(boolean bookingUpdates) {
+            this.bookingUpdates = bookingUpdates;
+        }
+
+        public boolean isTicketUpdates() {
+            return ticketUpdates;
+        }
+
+        public void setTicketUpdates(boolean ticketUpdates) {
+            this.ticketUpdates = ticketUpdates;
+        }
+
+        public boolean isNewComments() {
+            return newComments;
+        }
+
+        public void setNewComments(boolean newComments) {
+            this.newComments = newComments;
+        }
+    }
+
     public User() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    public NotificationPreferences getNotificationPreferences() {
+        return notificationPreferences;
+    }
+
+    public void setNotificationPreferences(NotificationPreferences notificationPreferences) {
+        this.notificationPreferences = notificationPreferences;
     }
 
     public String getId() {
