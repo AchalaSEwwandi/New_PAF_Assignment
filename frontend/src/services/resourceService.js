@@ -40,7 +40,7 @@ export const updateResource = async (id, data) => {
 export const deleteResource = async (id) => {
   return await api.delete(`/api/resources/${id}`);
 };
-
+//export functions
 export default {
   getAllResources,
   getResourceById,
