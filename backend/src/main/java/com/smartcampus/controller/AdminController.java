@@ -50,7 +50,8 @@ public class AdminController {
     public ResponseEntity<?> approveUser(@PathVariable String id, @RequestBody RoleRequest roleRequest) {
         try {
             User user = userRepository.findById(id).orElse(null);
-            if (user == null) return ResponseEntity.badRequest().body("User not found");
+            if (user == null)
+                return ResponseEntity.badRequest().body("User not found");
 
             user.setStatus(User.Status.ACTIVE);
             user.setRole(roleRequest.getRole());
@@ -72,7 +73,8 @@ public class AdminController {
     public ResponseEntity<?> rejectUser(@PathVariable String id) {
         try {
             User user = userRepository.findById(id).orElse(null);
-            if (user == null) return ResponseEntity.badRequest().body("User not found");
+            if (user == null)
+                return ResponseEntity.badRequest().body("User not found");
 
             user.setStatus(User.Status.REJECTED);
             userRepository.save(user);
@@ -131,12 +133,15 @@ public class AdminController {
         }
     }
 
-    /** PATCH /api/admin/tickets/{id}/assign-technician — { "technicianEmail": "..." } */
+    /**
+     * PATCH /api/admin/tickets/{id}/assign-technician — { "technicianEmail": "..."
+     * }
+     */
     @PatchMapping("/tickets/{id}/assign-technician")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignTechnician(@PathVariable String id,
-                                               @RequestBody Map<String, String> body,
-                                               Authentication authentication) {
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
         try {
             String techEmail = body.get("technicianEmail");
             if (techEmail == null || techEmail.trim().isEmpty())
@@ -150,12 +155,15 @@ public class AdminController {
         }
     }
 
-    /** PATCH /api/admin/tickets/{id}/status — { "status": "...", "resolutionNotes": "..." } */
+    /**
+     * PATCH /api/admin/tickets/{id}/status — { "status": "...", "resolutionNotes":
+     * "..." }
+     */
     @PatchMapping("/tickets/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateTicketStatus(@PathVariable String id,
-                                                 @RequestBody Map<String, String> body,
-                                                 Authentication authentication) {
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
         try {
             String status = body.get("status");
             if (status == null || status.trim().isEmpty())
@@ -170,12 +178,12 @@ public class AdminController {
         }
     }
 
-    /** PATCH /api/admin/tickets/{id}/reject — { "reason": "..." }  (mandatory!) */
+    /** PATCH /api/admin/tickets/{id}/reject — { "reason": "..." } (mandatory!) */
     @PatchMapping("/tickets/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> rejectTicket(@PathVariable String id,
-                                           @RequestBody Map<String, String> body,
-                                           Authentication authentication) {
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
         try {
             String reason = body.get("reason");
             if (reason == null || reason.trim().isEmpty())
