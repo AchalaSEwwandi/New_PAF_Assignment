@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 
+//Convert date + time to ISO format (for backend)
 function toLocalDateTime(date, time) {
   return `${date}T${time}:00`;
 }
@@ -9,6 +10,8 @@ export default function BookResource({ resourceId, onBack, onSuccess }) {
 
   const handleBack = () => {
     if (onBack) return onBack();
+
+    // Check where user came from
     const returnTo = sessionStorage.getItem("bookingReturnTo");
     sessionStorage.removeItem("bookingReturnTo");
     if (returnTo === "student") {
