@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-//Resource request DTO
+//Resource request DTO(validations )
 public class ResourceRequest {
 
     @NotBlank(message = "Name is required")
