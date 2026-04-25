@@ -8,10 +8,13 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.smartcampus.model.Booking;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
@@ -23,25 +26,26 @@ import java.util.Map;
 @Service
 public class QRCodeService {
 
+    /**
+     * Optional override. If set explicitly in application.properties, that value is used.
+     * If left as the default "auto", the local network IP is auto-detected at runtime.
+     */
+    @Value("${frontend.base-url:auto}")
+    private String frontendBaseUrl;
+
     private static final int QR_WIDTH  = 300;
     private static final int QR_HEIGHT = 300;
 
     /**
-     * Builds a JSON-like payload from the booking and encodes it as a
-     * Base64 PNG QR code image.
-     *
-     * @param booking the APPROVED booking to encode
+     * Generates a QR code for an approved booking.
      * @return "data:image/png;base64,..." string ready for use in an <img> src
-     * @throws IllegalStateException if the booking is not APPROVED
      */
     public String generateQRCodeBase64(Booking booking) {
         if (booking.getStatus() != Booking.Status.APPROVED) {
             throw new IllegalStateException(
                     "QR codes can only be generated for APPROVED bookings.");
         }
-
         String payload = buildPayload(booking);
-
         try {
             byte[] pngBytes = encode(payload);
             String base64   = Base64.getEncoder().encodeToString(pngBytes);
@@ -53,15 +57,10 @@ public class QRCodeService {
 
     /**
      * Verifies that a raw QR payload string matches an existing approved booking.
-     *
-     * @param payload  raw text decoded from a QR code
-     * @param booking  the booking to validate against
-     * @return true if the payload belongs to this booking and it is APPROVED
      */
     public boolean verifyPayload(String payload, Booking booking) {
         if (booking.getStatus() != Booking.Status.APPROVED) return false;
-        String expected = buildPayload(booking);
-        return expected.equals(payload);
+        return buildPayload(booking).equals(payload);
     }
 
     // -------------------------------------------------------------------------
@@ -69,23 +68,34 @@ public class QRCodeService {
     // -------------------------------------------------------------------------
 
     private String buildPayload(Booking booking) {
-        // Point to the frontend's new verification page
-        // Use the machine's local IP to allow phone access
-        return "http://192.168.1.11:5173/verify?id=" + booking.getId();
+        return resolveBaseUrl() + "/verify?id=" + booking.getId();
     }
 
-    private String safeId(Object entity) {
-        if (entity == null) return "unknown";
-        if (entity instanceof com.smartcampus.model.User u)     return u.getId();
-        if (entity instanceof com.smartcampus.model.Resource r) return r.getId();
-        return "unknown";
+    /**
+     * Returns the frontend base URL.
+     * Uses the configured value if explicitly set in application.properties,
+     * otherwise auto-detects the machine's current local network IP.
+     */
+    private String resolveBaseUrl() {
+        if (!"auto".equals(frontendBaseUrl)) {
+            return frontendBaseUrl;
+        }
+        // Auto-detect: opening a UDP socket to an external address (no packets sent)
+        // forces Java to resolve the correct outbound network interface IP.
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 80);
+            String localIp = socket.getLocalAddress().getHostAddress();
+            return "http://" + localIp + ":5173";
+        } catch (Exception e) {
+            return "http://localhost:5173";
+        }
     }
+
 
     private byte[] encode(String content) throws WriterException, IOException {
         Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
-        // ErrorCorrectionLevel.H (High) for maximum robustness
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
-        hints.put(EncodeHintType.MARGIN, 4); // Clear space around the QR
+        hints.put(EncodeHintType.MARGIN, 4);
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
 
         QRCodeWriter writer = new QRCodeWriter();
