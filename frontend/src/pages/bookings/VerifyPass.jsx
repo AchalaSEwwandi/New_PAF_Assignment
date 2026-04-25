@@ -11,6 +11,7 @@ export default function VerifyPass() {
   const bookingId = queryParams.get("id");
 
   useEffect(() => {
+    // If no booking ID provided, show error
     if (!bookingId) {
       setError("No Booking ID provided.");
       setLoading(false);
@@ -18,6 +19,8 @@ export default function VerifyPass() {
     }
 
     setLoading(true);
+
+    // Fetch booking details from backend API
     api
       .get(`/api/bookings/${bookingId}`)
       .then((data) => {
