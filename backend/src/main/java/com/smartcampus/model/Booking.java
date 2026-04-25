@@ -47,6 +47,7 @@ public class Booking {
         this.createdAt = LocalDateTime.now();
     }
 
+    //getters and setters
     public String getId() {
         return id;
     }
