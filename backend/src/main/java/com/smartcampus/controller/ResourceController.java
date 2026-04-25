@@ -58,7 +58,8 @@ public class ResourceController {
         }
     }
 
-    // ─── POST /api/resources ───────────────────────────────────────────────────
+    // ─── POST /api/resources ─create
+    // resource──────────────────────────────────────────────────
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createResource(@Valid @RequestBody ResourceRequest request) {
@@ -66,7 +67,8 @@ public class ResourceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // ─── PUT /api/resources/{id} ───────────────────────────────────────────────
+    // ─── PUT /api/resources/{id}
+    // ─update──────────────────────────────────────────────
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateResource(
@@ -80,7 +82,8 @@ public class ResourceController {
         }
     }
 
-    // ─── DELETE /api/resources/{id} ────────────────────────────────────────────
+    // ─── DELETE /api/resources/{id}
+    // ──delete──────────────────────────────────────────
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteResource(@PathVariable String id) {
