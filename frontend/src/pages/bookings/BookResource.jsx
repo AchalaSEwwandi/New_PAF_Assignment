@@ -63,6 +63,21 @@ export default function BookResource({ resourceId, onBack, onSuccess }) {
                                 errors.expectedAttendees = "Enter a valid attendee count.";
     if (form.startTime && form.endTime && form.startTime >= form.endTime)
       errors.endTime = "End time must be after start time.";
+
+    // Same-day past time slot check
+    if (form.date && form.startTime) {
+      const today = new Date().toISOString().split("T")[0];
+      if (form.date === today) {
+        const now = new Date();
+        const [hh, mm] = form.startTime.split(":").map(Number);
+        const slotStart = new Date();
+        slotStart.setHours(hh, mm, 0, 0);
+        if (slotStart <= now) {
+          errors.startTime = "Cannot select a past time slot for today. Please choose a future time.";
+        }
+      }
+    }
+
     return errors;
   };
 

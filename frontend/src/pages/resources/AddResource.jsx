@@ -7,8 +7,8 @@ const AddResource = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
-  
-//form data for resource creation
+
+  //form data for resource creation
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,7 +27,7 @@ const AddResource = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Clear error for this field when user starts typing
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: false });
@@ -90,6 +90,7 @@ const AddResource = () => {
   };
 
   const locationOptions = getLocationOptions();
+  //validate form before updated
 
   const validateForm = () => {
     const errors = {};
@@ -108,7 +109,7 @@ const AddResource = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setError("Please fill all required fields highlighting in red.");
       return;
@@ -151,9 +152,9 @@ const AddResource = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#e8f5e9] to-[#e3f2fd] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-2xl w-full bg-white p-10 rounded-3xl shadow-md relative">
-        <button 
+        <button
           type="button"
-          onClick={() => navigate('/resources')} 
+          onClick={() => navigate('/resources')}
           className="absolute top-6 left-6 p-2 text-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center group"
           title="Back to Resources"
         >

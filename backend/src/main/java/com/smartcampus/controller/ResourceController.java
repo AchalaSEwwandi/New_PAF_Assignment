@@ -23,6 +23,7 @@ import com.smartcampus.model.Resource;
 import com.smartcampus.service.ResourceService;
 
 import jakarta.validation.Valid;
+
 //api/resources endpoints 
 @RestController
 @RequestMapping("/api/resources")

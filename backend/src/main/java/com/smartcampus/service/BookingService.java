@@ -1,6 +1,7 @@
 package com.smartcampus.service;
 
 import com.smartcampus.dto.BookingRequest;
+import com.smartcampus.exception.InvalidBookingException;
 import com.smartcampus.model.Booking;
 import com.smartcampus.model.Resource;
 import com.smartcampus.model.User;
@@ -9,6 +10,8 @@ import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -50,6 +53,8 @@ public class BookingService {
      * @throws RuntimeException if user or resource is not found, or a conflict exists
      */
     public Booking createBooking(BookingRequest request, String userEmail) {
+        // 0. Business-rule validation — must happen before any DB calls
+        validateBookingTime(request.getStartTime(), request.getEndTime());
         System.out.println("DEBUG: Entering createBooking for email: " + userEmail);
         
         // 1. Resolve user
@@ -230,5 +235,44 @@ public class BookingService {
 
         booking.setStatus(Booking.Status.CANCELLED);
         return bookingRepository.save(booking);
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Validates that a booking time slot is logically valid and not in the past.
+     *
+     * <p>Rules:</p>
+     * <ol>
+     *   <li>End time must be strictly after start time.</li>
+     *   <li>Start time must not be in the past (covers same-day past slots and
+     *       past dates).</li>
+     *   <li>Future dates are always allowed as long as the start time is not past.</li>
+     * </ol>
+     *
+     * @param startTime requested booking start
+     * @param endTime   requested booking end
+     * @throws InvalidBookingException with a descriptive message if any rule is violated
+     */
+    private void validateBookingTime(LocalDateTime startTime, LocalDateTime endTime) {
+        // Rule 1 – logical order
+        if (!endTime.isAfter(startTime)) {
+            throw new InvalidBookingException(
+                    "End time must be strictly after start time. " +
+                    "Received: start=" + startTime + ", end=" + endTime + ".");
+        }
+
+        // Rule 2 – no past time slots (same-day past times and past dates)
+        LocalDateTime now = LocalDateTime.now();
+        if (startTime.isBefore(now)) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            throw new InvalidBookingException(
+                    "Cannot book a time slot that has already passed. " +
+                    "Requested start: " + startTime.format(fmt) +
+                    ", but current server time is: " + now.format(fmt) + ". " +
+                    "Please choose a future time slot.");
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.dto.BookingRequest;
+import com.smartcampus.exception.InvalidBookingException;
 import com.smartcampus.model.Booking;
 import com.smartcampus.model.User;
 import com.smartcampus.repository.UserRepository;
@@ -67,6 +68,11 @@ public class BookingController {
             String email = getCurrentUserEmail();
             Booking booking = bookingService.createBooking(request, email);
             return ResponseEntity.status(HttpStatus.CREATED).body(booking);
+        } catch (InvalidBookingException e) {
+            // Business rule violation: past time slot, invalid range, etc.
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             // Conflict detection fires a RuntimeException with a specific message
             if (e.getMessage() != null && e.getMessage().contains("conflict")) {
