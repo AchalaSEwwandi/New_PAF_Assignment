@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as resourceService from '../../services/resourceService';
-
+//add resources page
 const AddResource = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
