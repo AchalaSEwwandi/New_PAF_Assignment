@@ -280,14 +280,18 @@ function AdminTicketDetail({ ticketId, technicians, onBack, onUpdate }) {
 
       {/* Admin action buttons */}
       <div style={{display:'flex',gap:'10px',flexWrap:'wrap',marginBottom:'22px'}}>
-        <button onClick={()=>setModal('assign')}
-          style={{padding:'9px 18px',borderRadius:'9px',border:'none',background:'#6a0dad',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'13px'}}>
-          👷 {ticket.assignedTo?'Reassign':'Assign'} Technician
-        </button>
-        <button onClick={()=>setModal('status')}
-          style={{padding:'9px 18px',borderRadius:'9px',border:'1.5px solid #6a0dad',background:'#fff',color:'#6a0dad',fontWeight:'700',cursor:'pointer',fontSize:'13px'}}>
-          🔄 Update Status
-        </button>
+        {ticket.status!=='REJECTED'&&(
+          <button onClick={()=>setModal('assign')}
+            style={{padding:'9px 18px',borderRadius:'9px',border:'none',background:'#6a0dad',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'13px'}}>
+            👷 {ticket.assignedTo?'Reassign':'Assign'} Technician
+          </button>
+        )}
+        {ticket.status!=='REJECTED'&&(
+          <button onClick={()=>setModal('status')}
+            style={{padding:'9px 18px',borderRadius:'9px',border:'1.5px solid #6a0dad',background:'#fff',color:'#6a0dad',fontWeight:'700',cursor:'pointer',fontSize:'13px'}}>
+            🔄 Update Status
+          </button>
+        )}
         {ticket.status!=='REJECTED'&&ticket.status!=='CLOSED'&&(
           <button onClick={()=>setModal('reject')}
             style={{padding:'9px 18px',borderRadius:'9px',border:'none',background:'#ef4444',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'13px'}}>
@@ -620,14 +624,18 @@ export default function AdminTicketPanel() {
                           style={{padding:'5px 12px',borderRadius:'7px',border:'1.5px solid #6a0dad',background:'#fff',color:'#6a0dad',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>
                           View
                         </button>
-                        <button onClick={()=>openModal('assign',t)}
-                          style={{padding:'5px 12px',borderRadius:'7px',border:'none',background:'#6a0dad',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>
-                          Assign
-                        </button>
-                        <button onClick={()=>openModal('status',t)}
-                          style={{padding:'5px 12px',borderRadius:'7px',border:'1.5px solid #d97706',background:'#fffbeb',color:'#d97706',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>
-                          Status
-                        </button>
+                        {t.status!=='REJECTED'&&(
+                          <button onClick={()=>openModal('assign',t)}
+                            style={{padding:'5px 12px',borderRadius:'7px',border:'none',background:'#6a0dad',color:'#fff',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>
+                            Assign
+                          </button>
+                        )}
+                        {t.status!=='REJECTED'&&(
+                          <button onClick={()=>openModal('status',t)}
+                            style={{padding:'5px 12px',borderRadius:'7px',border:'1.5px solid #d97706',background:'#fffbeb',color:'#d97706',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>
+                            Status
+                          </button>
+                        )}
                         {t.status!=='REJECTED'&&t.status!=='CLOSED'&&(
                           <button onClick={()=>openModal('reject',t)}
                             style={{padding:'5px 12px',borderRadius:'7px',border:'none',background:'#fef2f2',color:'#dc2626',fontWeight:'700',cursor:'pointer',fontSize:'12px'}}>

@@ -29,3 +29,5 @@ frontend/dist/
 
 # Maven compiler list files
 *.lst
+
+/target/
