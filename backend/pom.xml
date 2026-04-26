@@ -66,6 +66,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Fix: Java 25 enables ML-KEM post-quantum TLS by default; MongoDB Atlas rejects it with internal_error -->
+                    <!-- Restrict named groups to classic curves only and disable ML-KEM key shares -->
+                    <jvmArguments>
+                        -Djdk.tls.namedGroups=secp256r1,secp384r1,secp521r1,x25519,x448,ffdhe2048,ffdhe3072
+                        -Djdk.tls.keyShare=secp256r1
+                        -Djdk.mlkem.enabled=false
+                        -Djdk.tls.client.protocols=TLSv1.2,TLSv1.3
+                        -Dhttps.protocols=TLSv1.2,TLSv1.3
+                    </jvmArguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
