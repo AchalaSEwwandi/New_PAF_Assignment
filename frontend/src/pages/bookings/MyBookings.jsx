@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../../services/api";
 
+//Format date
 function fmtDate(dt) {
   if (!dt) return "—";
   return new Date(dt).toLocaleDateString(undefined, {
     weekday: "short", year: "numeric", month: "short", day: "numeric",
   });
 }
+//Format time
 function fmtTime(dt) {
   if (!dt) return "—";
   return new Date(dt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
+//Styles for different booking statuses
 const STATUS_STYLES = {
   PENDING:   { pill: "bg-yellow-100 text-yellow-700 border-yellow-200",  dot: "bg-yellow-400"  },
   APPROVED:  { pill: "bg-green-100  text-green-700  border-green-200",   dot: "bg-green-500"   },
@@ -20,6 +23,7 @@ const STATUS_STYLES = {
   COMPLETED: { pill: "bg-blue-100   text-blue-600   border-blue-200",    dot: "bg-blue-500"    },
 };
 
+//Component to display status badge
 function StatusBadge({ status }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.PENDING;
   return (
@@ -41,6 +45,7 @@ export default function MyBookings() {
   const [qrLoading, setQrLoading]     = useState(false);
   const [qrError, setQrError]         = useState("");
 
+  //Fetch bbokings from backend API
   const fetchBookings = useCallback(() => {
     setLoading(true);
     setFetchError("");
@@ -80,11 +85,13 @@ export default function MyBookings() {
     }
   };
 
+  //show QR code for approved booking
   const showQRCode = async (booking) => {
     setQrModal(booking);
     setQrLoading(true);
     setQrError("");
     try {
+      //Fetch QR code from backend
       const data = await api.get(`/api/bookings/${booking.id}/qr`);
       setQrModal({ ...booking, qrCodeBase64: data.qrCode });
     } catch (err) {
