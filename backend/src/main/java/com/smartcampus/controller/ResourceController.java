@@ -24,6 +24,7 @@ import com.smartcampus.service.ResourceService;
 
 import jakarta.validation.Valid;
 
+//5 api's
 //api/resources endpoints 
 @RestController
 @RequestMapping("/api/resources")
@@ -47,7 +48,7 @@ public class ResourceController {
         return ResponseEntity.ok(resources);
     }
 
-    // ─── GET /api/resources/{id} ───────────────────────────────────────────────
+    // ─── GET /api/resources/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> getResourceById(@PathVariable String id) {
         try {
