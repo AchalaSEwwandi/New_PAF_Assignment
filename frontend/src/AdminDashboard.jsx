@@ -28,16 +28,16 @@ export default function AdminDashboard({ setCurrentPage }) {
     })
       .then(async res => {
         if (!res.ok) {
-           const text = await res.text();
-           throw new Error(`API Error ${res.status}: ${text}`);
+          const text = await res.text();
+          throw new Error(`API Error ${res.status}: ${text}`);
         }
         return res.json();
       })
       .then(data => {
         if (Array.isArray(data)) {
-           setUsers(data);
+          setUsers(data);
         } else {
-           throw new Error('Data is not an array: ' + JSON.stringify(data));
+          throw new Error('Data is not an array: ' + JSON.stringify(data));
         }
         setErrorMessage(null);
         setLoading(false);
@@ -121,7 +121,7 @@ export default function AdminDashboard({ setCurrentPage }) {
   };
 
   const pendingUsers = users.filter(u => u.status === 'PENDING').length;
-
+  //resources pie chart
   const resourceTypes = ['EQUIPMENT', 'LAB', 'LECTURE_HALL', 'MEETING_ROOM'];
   const COLORS = ['#a855f7', '#22c55e', '#3b82f6', '#f59e0b'];
   const pieData = resourceTypes.map(type => ({
@@ -179,8 +179,8 @@ export default function AdminDashboard({ setCurrentPage }) {
                 <button
                   onClick={() => setActiveTab(item.name)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeTab === item.name
-                      ? 'bg-[#6a0dad] text-white font-semibold shadow-sm'
-                      : 'text-[#a1a1aa] hover:text-white hover:bg-[#2a2a2d]/50'
+                    ? 'bg-[#6a0dad] text-white font-semibold shadow-sm'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-[#2a2a2d]/50'
                     }`}
                 >
                   <div className="flex items-center gap-3">
@@ -426,7 +426,7 @@ export default function AdminDashboard({ setCurrentPage }) {
                             <td className="px-6 py-4">
                               {user.status === 'PENDING' ? (
                                 <div className="flex items-center gap-2">
-                                  <select 
+                                  <select
                                     className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6a0dad]"
                                     value={approvalRoles[user.id] || user.role}
                                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -495,16 +495,16 @@ export default function AdminDashboard({ setCurrentPage }) {
               </div>
               <h2 className="font-syne text-2xl font-bold text-gray-800 mb-3">{activeTab}</h2>
               <p className="text-gray-400 text-sm max-w-sm">
-                {activeTab === 'Resources' 
+                {activeTab === 'Resources'
                   ? "The Resources & Facilities module is fully functional! Click below to open it."
                   : "This module is currently under development by the team. Check back soon!"}
               </p>
               {activeTab === 'Resources' ? (
-                 <button onClick={() => window.location.href = '/resources'} className="mt-6 px-6 py-3 bg-[#6a0dad] hover:bg-[#580b94] text-white text-sm font-semibold rounded-xl transition-all shadow-md">
-                   Launch Resources Module
-                 </button>
+                <button onClick={() => window.location.href = '/resources'} className="mt-6 px-6 py-3 bg-[#6a0dad] hover:bg-[#580b94] text-white text-sm font-semibold rounded-xl transition-all shadow-md">
+                  Launch Resources Module
+                </button>
               ) : (
-                 <span className="mt-6 px-4 py-2 bg-[#6a0dad]/10 text-[#6a0dad] text-sm font-semibold rounded-full">Coming Soon</span>
+                <span className="mt-6 px-4 py-2 bg-[#6a0dad]/10 text-[#6a0dad] text-sm font-semibold rounded-full">Coming Soon</span>
               )}
             </div>
           )}
